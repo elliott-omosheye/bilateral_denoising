@@ -31,39 +31,21 @@ public:
     void drawForeground(QPainter *painter, const QRectF &rect);
 
 protected:
-    void runICPglobalMeshes(int iterations, bool sampling);
     void loadMesh(const QString filePath);
-    void applyTransformations();
-    void runICP(int iterations);
-    void runTwoMesh(const QString m1, const QString m2);
-    void runNoiseICP();
-    void runSamplingICP();
-    void loadGlobal(const QString m1, const QString m2, const QString m3);
 
 protected:
     QWidget *m_modelButton;
-    QWidget *m_applyButton;
-    QWidget *m_icpButton;
-    QWidget *m_icpButton5;
-    QWidget *m_icpButton10;
-    QWidget *m_icpButton50;
-    QWidget *m_icpButton100;
-    QWidget *m_icpButtonSampling;
-    QWidget *m_icpButtonNoise;
-    QWidget *m_twoMeshButton;
-    QWidget *m_sameMeshButton;
-    QWidget *m_globalButton;
+    QWidget *m_ex1Button;
+    QWidget *m_ex2Button;
+    QWidget *m_ex3Button;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void keyPressEvent( QKeyEvent* event);
-    bool runICPTwoMeshes(QtModelT<M>* m1, QtModelT<M>*  m2, int iterations);
-    bool samplingICP(QtModelT<M>* m1, QtModelT<M>*  m2, int iterations);
 
 private:
     QDialog *createDialog(const QString &windowTitle) const;
-    int whichRadioButton();
 
     MyMesh m_mymesh;
     QColor m_backgroundColor;
@@ -79,18 +61,7 @@ private:
     QVector3D m_rotation;
 
     QGraphicsRectItem *m_lightItem;
-    QGroupBox* groupBox;
-    QRadioButton* radio1;
-    QRadioButton* radio2;
-    QRadioButton* radio3;
-    QRadioButton* radio4;
-    QRadioButton* radio5;
-    QRadioButton* radio6;
     const float TANSLATE_SPEED;
-    double getMedian(Matrix<double, Dynamic, 1> mat);
-    void getBaryCenteredPoints(PointMatrix &matHat, const PointMatrix &mat);
-    void generateA(Matrix<double, 3, 3>  &A, const PointMatrix &m1Hat, const PointMatrix &m2Hat);
-    void updateColour();
 
 };
 

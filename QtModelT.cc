@@ -21,6 +21,7 @@ QtModelT<M>::QtModelT(M& m)
   , deg2Rad(0.0174532925)
 {
   mesh = m;
+  updateColour();
 }
 
 
@@ -126,11 +127,11 @@ QtModelT<M>::updateTransformations(Matrix<double, 3, 3>& R, double x, double y, 
 
 template <typename M>
 void
-QtModelT<M>::addNoise()
+QtModelT<M>::addNoise(double sigma)
 {
    std::random_device rd;
    std::mt19937 gen(rd());
-   std::normal_distribution<> d(0, 0.001);
+   std::normal_distribution<> d(0, sigma);
 
   typedef typename M::Point Point;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
@@ -191,31 +192,11 @@ QtModelT<M>::updateVertical(float x)
 
 template <typename M>
 void
-QtModelT<M>::updateColour(int x)
+QtModelT<M>::updateColour()
 {
-  std::cout << x << std::endl;
-  switch (x) {
-    case 1:  
-      modelColor.setRgb(255, 0, 0);
-      break;
-    case 2:  
-      modelColor.setRgb(0, 0, 255);
-      break;
-    case 3:  
-      modelColor.setRgb(0, 255, 255);
-      break;
-    case 4:  
-      modelColor.setRgb(255, 255, 0);
-      break;
-    case 5:  
-      modelColor.setRgb(255, 0, 255);
-      break;
-    default: modelColor.setRgb(255, 0, 255);
-  }
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
-    //RGB WRONG WAY
-    mesh.set_color(*v_it, OpenMesh::Vec3f(modelColor.blueF(), modelColor.greenF(), modelColor.redF()));
+    mesh.set_color(*v_it, OpenMesh::Vec3f(modelColor.redF(), modelColor.blueF(), modelColor.greenF()));
   }
 }
 

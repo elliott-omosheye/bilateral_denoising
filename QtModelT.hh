@@ -31,7 +31,7 @@ public:
     QtModelT(M& m);
     ~QtModelT();
     void render();
-    void updateColour(int i);
+    void updateColour();
     void updateRotation(QVector3D& rotationVec);
     void updateHorizontal(float x);
     void updateVertical(float x);
@@ -41,7 +41,7 @@ public:
     PointMatrix buildSampledMatrix();
     int getNoVerticies();
     void updateTransformations(Matrix<double, 3, 3>& R, double x, double y, double z);
-    void addNoise();
+    void addNoise(double sigma);
     void mergeColours(QtModelT<M>* m2);
 
 private:
