@@ -45,6 +45,7 @@ public:
     void mergeColours(QtModelT<M>* m2);
 
 private:
+    void calculateNormals();
     M mesh;
     QVector3D modelRotation;
     QColor modelColor;

@@ -244,4 +244,18 @@ QtModelT<M>::boundingRect() const
   return QRectF(0,0, 1024, 768);
 }
 
+template <typename M>
+void
+QtModelT<M>::calculateNormals()
+{
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    OpenMesh::Vec3d Normal;
+    for (typename M::VertexFaceIter vf_it=mesh.vf_iter(v_it); vf_it; ++vf_it)
+    {
+      //
+    }
+  }
+}
+
 #endif
