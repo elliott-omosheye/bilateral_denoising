@@ -7,6 +7,7 @@
 #include "GLUT/glut.h"
 #include <QtGui>
 #include <QtOpenGL>
+#include <QDoubleSpinBox>
 #include <OpenMesh/Core/Utils/vector_cast.hh>
 #include <OpenMesh/Tools/Utils/Timer.hh>
 
@@ -49,7 +50,50 @@ SceneT<M>::SceneT()
   m_modelButton = new QPushButton(tr("Load model"));
   controls->layout()->addWidget(m_modelButton);
 
-  QWidget *widgets[] = { controls, examples };
+  noiseSpinBox = new QDoubleSpinBox();
+  noiseSpinBox->setMinimum(0.00001);
+  noiseSpinBox->setMaximum(1.00);
+  noiseSpinBox->setSingleStep(0.00001);
+  //noiseSpinBox->setMinimumWidth(200);
+  noiseSpinBox->setDecimals(5);
+  noiseSpinBox->setPrefix("Noise: ");
+  controls->layout()->addWidget(noiseSpinBox);
+  noiseSpinBox->setHidden(true);
+
+  applyNoiseButton = new QPushButton(tr("Apply Noise"));
+  controls->layout()->addWidget(applyNoiseButton);
+  applyNoiseButton->setHidden(true);
+
+  meshes = createDialog(tr("Meshes"));
+  meshes->setHidden(true);
+
+  groupBox = new QGroupBox(tr("Select Mesh"));
+  radio1 = new QRadioButton(tr("All"));
+  radio2 = new QRadioButton(tr("M1"));
+  radio3 = new QRadioButton(tr("M2"));
+  radio4 = new QRadioButton(tr("M3"));
+  radio5 = new QRadioButton(tr("M4"));
+  radio6 = new QRadioButton(tr("M5"));
+  groupBox->setHidden(true);
+  radio3->setHidden(true);
+  radio4->setHidden(true);
+  radio5->setHidden(true);
+  radio6->setHidden(true);
+
+  radio1->setChecked(true);
+  QVBoxLayout *vbox = new QVBoxLayout;
+  vbox->addWidget(radio1);
+  vbox->addWidget(radio2);
+  vbox->addWidget(radio3);
+  vbox->addWidget(radio4);
+  vbox->addWidget(radio5);
+  vbox->addWidget(radio6);
+
+  vbox->addStretch(1);
+  groupBox->setLayout(vbox);
+  meshes->layout()->addWidget(groupBox);
+
+  QWidget *widgets[] = { meshes, controls, examples  };
 
   for (uint i = 0; i < sizeof(widgets) / sizeof(*widgets); ++i) {
     QGraphicsProxyWidget *proxy = new QGraphicsProxyWidget(0, Qt::Dialog);
@@ -66,6 +110,24 @@ SceneT<M>::SceneT()
     pos += QPointF(0, 10 + rect.height());
   }
 
+}
+
+template <typename M>
+void
+SceneT<M>::applyNoise()
+{
+    std::cout << "Apply Noise" << "\n";
+    const int radioId = whichRadioButton();
+    if(radioId  == 1)
+    {
+      for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
+        models[i]->addNoise(noiseSpinBox->value());
+      }
+    }
+    else
+    {
+      models[radioId-2]->addNoise(noiseSpinBox->value());
+    }
 }
 
 template <typename M>
@@ -125,9 +187,6 @@ SceneT<M>::drawBackground(QPainter *painter, const QRectF &)
   painter->endNativePainting();
 }
 
-
-
-
 template <typename M>
 void
 SceneT<M>::loadMesh(const QString filePath)
@@ -142,10 +201,35 @@ SceneT<M>::loadMesh(const QString filePath)
   {
 
     models.push_back(new QtModelT<M>(m_mymesh));
-    //models.back()->updateColour(models.size());
-    std::clog << m_mymesh.n_vertices() << " vertices, "
-    << m_mymesh.n_edges()    << " edge, "
-    << m_mymesh.n_faces()    << " faces\n";
+
+    //if(!models.back()->hasColour())
+      //models.back()->updateColour(models.size());
+
+    switch(models.size())
+    {
+      case 1:
+        meshes->setHidden(false);
+        noiseSpinBox->setHidden(false);
+        applyNoiseButton->setHidden(false);
+        groupBox->setHidden(false);
+        break;
+      case 2:
+        radio3->setHidden(false);
+        break;
+      case 3:
+        radio4->setHidden(false);
+        break;
+      case 4:
+        radio5->setHidden(false);
+        break;
+      case 5:
+        radio6->setHidden(false);
+        break;
+    }
+
+    //std::clog << m_mymesh.n_vertices() << " vertices, "
+    //<< m_mymesh.n_edges()    << " edge, "
+    //<< m_mymesh.n_faces()    << " faces\n";
   }
   else
   {
@@ -153,7 +237,7 @@ SceneT<M>::loadMesh(const QString filePath)
   }
   m_modelButton->setEnabled(true);
   QApplication::restoreOverrideCursor();
-  
+
 }
 
 
@@ -181,7 +265,15 @@ SceneT<M>::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
   if (event->buttons() & Qt::LeftButton) {
     const QPointF delta = event->scenePos() - event->lastScenePos();
     QVector3D angularImpulse = QVector3D(delta.y(), delta.x(), 0) * 0.1;
-    m_rotation += angularImpulse;
+    
+    const int radioId = whichRadioButton();
+    if(radioId  == 1){
+      m_rotation += angularImpulse;
+    }
+    else
+    {
+      models[radioId-2]->updateRotation(angularImpulse);
+    }
     event->accept();
     update();
   }
@@ -214,27 +306,67 @@ template <typename M>
 void
 SceneT<M>::keyPressEvent( QKeyEvent* event)
 {
-  switch(event->key())
+  const int radioId = whichRadioButton();
+  if(radioId  == 1)
   {
-    case Key_Up:
-      m_vertical += TANSLATE_SPEED;
-      break;
-    case Key_Down:
-      m_vertical -= TANSLATE_SPEED;
-      break;
-    case Key_Right:
-      m_horizontal += TANSLATE_SPEED;
-      break;
-    case Key_Left:
-      m_horizontal -= TANSLATE_SPEED;
-      break;
+    switch(event->key())
+    {
+      case Key_Up:
+        m_vertical += TANSLATE_SPEED;
+        break;
+      case Key_Down:
+        m_vertical -= TANSLATE_SPEED;
+        break;
+      case Key_Right:
+        m_horizontal += TANSLATE_SPEED;
+        break;
+      case Key_Left:
+        m_horizontal -= TANSLATE_SPEED;
+        break;
+    }
   }
-
+  else
+  {
+    switch(event->key())
+    {
+      case Key_Up:
+        models[radioId-2]->updateVertical(TANSLATE_SPEED);
+        break;
+      case Key_Down:
+        models[radioId-2]->updateVertical(-TANSLATE_SPEED);
+        break;
+      case Key_Right:
+        models[radioId-2]->updateHorizontal(TANSLATE_SPEED);
+        break;
+      case Key_Left:
+        models[radioId-2]->updateHorizontal(-TANSLATE_SPEED);
+        break;
+    }
+  }
   event->accept();
   update();
 }
 
-
+template <typename M>
+int
+SceneT<M>::whichRadioButton()
+{
+  if(radio1->isChecked())
+    return 1;
+  else if(radio2->isChecked())
+    return 2;
+  else if(radio3->isChecked())
+    return 3;
+  else if(radio4->isChecked())
+    return 4;
+  else if(radio5->isChecked())
+    return 5;
+  else if(radio6->isChecked())
+    return 6;
+  else
+    return 0;
+  
+}
 
 
 #endif

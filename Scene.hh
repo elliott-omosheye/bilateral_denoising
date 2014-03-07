@@ -21,15 +21,20 @@ public:
     Scene() : SceneT<MyMesh>()
     {
       connect(m_modelButton, SIGNAL(clicked()), this, SLOT(selectMesh()));
-
+      connect(applyNoiseButton, SIGNAL(clicked()), this, SLOT(applyNoiseSlot()));
     }
-
 public slots:
     void selectMesh()
     {
       QString selfilter = tr("Meshes (*.stl *.obj)");
       loadMesh(QFileDialog::getOpenFileName(0, tr("Choose mesh"), QString(), tr("All files (*.*);;Meshes (*.stl *.obj)" ), &selfilter));
     }
+
+    void applyNoiseSlot()
+    {
+      applyNoise();
+    }
+
 
 
 };

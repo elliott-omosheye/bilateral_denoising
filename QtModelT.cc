@@ -236,50 +236,6 @@ QtModelT<M>::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 
 }
 
-template <typename M>
-void
-QtModelT<M>::mergeColours(QtModelT<M>* m2)
-{
-  //std::cout << "merge colours" << "\n";
-   typedef typename M::Point Point;
-
-  PointMatrix m2Mat = m2->buildMatrix();
-  typedef nanoflann::KDTreeEigenMatrixAdaptor< PointMatrix >  my_kd_tree_t;
-  my_kd_tree_t   mat_index(3, m2Mat, 10);
-  mat_index.index->buildIndex();
-  const size_t num_results = 1;
-
-  double meanDist = 0;
-  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
-  {
-     std::vector<double> query_pt(3);
-     query_pt[0] = mesh.point(*v_it)[0];
-     query_pt[1] = mesh.point(*v_it)[1];
-     query_pt[2] = mesh.point(*v_it)[2];
-
-     std::vector<size_t>   ret_index(num_results);
-     std::vector<double>    out_dist_sqr(num_results);
-
-     nanoflann::KNNResultSet<double> resultSet(num_results);
-
-     resultSet.init(&ret_index[0], &out_dist_sqr[0] );
-     mat_index.index->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
-
-     meanDist = meanDist + out_dist_sqr[0];
-
-     if (out_dist_sqr[0] < 0.000005)
-        mesh.set_color(*v_it, OpenMesh::Vec3f(255, 255, 255));
-     else
-        mesh.set_color(*v_it, OpenMesh::Vec3f(modelColor.blueF(), modelColor.greenF(), modelColor.redF()));
-
-  }
-
-  //std::cout << "Mean Dist: " << meanDist / mesh.n_vertices() << "\n";
-
-
-
-}
-
 
 template <typename M>
 QRectF 

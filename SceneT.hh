@@ -38,14 +38,18 @@ protected:
     QWidget *m_ex1Button;
     QWidget *m_ex2Button;
     QWidget *m_ex3Button;
+    QDoubleSpinBox *noiseSpinBox;
+    QWidget *applyNoiseButton;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void keyPressEvent( QKeyEvent* event);
+    void applyNoise();
 
 private:
     QDialog *createDialog(const QString &windowTitle) const;
+    int whichRadioButton();
 
     MyMesh m_mymesh;
     QColor m_backgroundColor;
@@ -62,6 +66,15 @@ private:
 
     QGraphicsRectItem *m_lightItem;
     const float TANSLATE_SPEED;
+
+    QWidget *meshes;
+    QGroupBox* groupBox;
+    QRadioButton* radio1;
+    QRadioButton* radio2;
+    QRadioButton* radio3;
+    QRadioButton* radio4;
+    QRadioButton* radio5;
+    QRadioButton* radio6;
 
 };
 
