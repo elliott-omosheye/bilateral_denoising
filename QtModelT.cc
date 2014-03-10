@@ -10,7 +10,7 @@
 #include <QtOpenGL>
 #include <random>
 #include <cmath>
-
+#include <math.h> 
 
 template <typename M>
 QtModelT<M>::QtModelT(M& m)
@@ -283,6 +283,34 @@ void
 QtModelT<M>::bilateralFiltering()
 {
   std::cout << "filter" << "\n";
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    float sum = 0.0;
+    float normalizer = 0.0;
+    float sigc = 1.0;
+    float sigs = 0.5;
+
+    for (typename M::VertexVertexIter vv_it=mesh.vv_iter( v_it ); vv_it; ++vv_it)
+    {
+      // Calculate Sum and normalizer
+      OpenMesh::Vec3f pointA = mesh.point(*v_it)-mesh.point(*vv_it);
+      float t = sqrt(pow(pointA[0],2)+pow(pointA[1],2)+pow(pointA[2],2));
+
+      float h = 0.0;
+      h += mesh.point(*v_it)[0]*pointA[0];
+      h += mesh.point(*v_it)[1]*pointA[1];
+      h += mesh.point(*v_it)[2]*pointA[2];
+
+      float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
+      float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
+
+      sum += (wc * ws) * h;
+      normalizer += wc + ws;
+
+    }
+    mesh.set_point( *v_it, mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) ) );
+  }
+  calcNormals();
 }
 
 #endif
