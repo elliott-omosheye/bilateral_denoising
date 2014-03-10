@@ -38,13 +38,13 @@ SceneT<M>::SceneT()
 , TANSLATE_SPEED(0.01f)
 {
 
-  QWidget *examples = createDialog(tr("Examples"));
-  m_ex1Button = new QPushButton(tr("Example 1 (ToDo)"));
-  examples->layout()->addWidget(m_ex1Button );
-  m_ex2Button= new QPushButton(tr("Example 2 (ToDo)"));
-  examples->layout()->addWidget(m_ex2Button);
-  m_ex3Button = new QPushButton(tr("Example 3 (ToDo)"));
-  examples->layout()->addWidget(m_ex3Button );
+  //QWidget *examples = createDialog(tr("Examples"));
+  //m_ex1Button = new QPushButton(tr("Example 1 (ToDo)"));
+  //examples->layout()->addWidget(m_ex1Button );
+  //m_ex2Button= new QPushButton(tr("Example 2 (ToDo)"));
+  //examples->layout()->addWidget(m_ex2Button);
+  //m_ex3Button = new QPushButton(tr("Example 3 (ToDo)"));
+  //examples->layout()->addWidget(m_ex3Button );
 
   QWidget *controls = createDialog(tr("Controls"));
   m_modelButton = new QPushButton(tr("Load model"));
@@ -108,7 +108,8 @@ SceneT<M>::SceneT()
   groupBox->setLayout(vbox);
   meshes->layout()->addWidget(groupBox);
 
-  QWidget *widgets[] = { meshes, controls, examples  };
+  //QWidget *widgets[] = { meshes, controls, examples  };
+  QWidget *widgets[] = { meshes, controls };
 
   for (uint i = 0; i < sizeof(widgets) / sizeof(*widgets); ++i) {
     QGraphicsProxyWidget *proxy = new QGraphicsProxyWidget(0, Qt::Dialog);
