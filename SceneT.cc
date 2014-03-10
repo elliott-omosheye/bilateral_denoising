@@ -38,17 +38,6 @@ SceneT<M>::SceneT()
 , TANSLATE_SPEED(0.01f)
 {
 
-   //glClearColor(0.0, 0.0, 0.0, 0.0);
-  //glDisable( GL_DITHER );
-  //glEnable( GL_DEPTH_TEST );
-
-  //// Material
-  //setDefaultMaterial();
-  
-  //// Lighting
-  //glLoadIdentity();
-  //setDefaultLight();
-
   QWidget *examples = createDialog(tr("Examples"));
   m_ex1Button = new QPushButton(tr("Example 1 (ToDo)"));
   examples->layout()->addWidget(m_ex1Button );
@@ -79,6 +68,16 @@ SceneT<M>::SceneT()
   controls->layout()->addWidget(updateNormalsButton);
   updateNormalsButton->setHidden(true);
 
+  bilateralFilteringSpinBox = new QSpinBox();
+  bilateralFilteringSpinBox->setMinimum(0);
+  bilateralFilteringSpinBox->setMaximum(20);
+  bilateralFilteringSpinBox->setPrefix("Iterations: ");
+  controls->layout()->addWidget(bilateralFilteringSpinBox);
+  bilateralFilteringSpinBox->setHidden(true);
+
+  bilateralFilteringButton = new QPushButton(tr("Apply Filter"));
+  controls->layout()->addWidget(bilateralFilteringButton);
+  bilateralFilteringButton->setHidden(true);
 
   meshes = createDialog(tr("Meshes"));
   meshes->setHidden(true);
@@ -271,47 +270,7 @@ SceneT<M>::loadMesh(const QString filePath)
   if(OpenMesh::IO::read_mesh(m_mymesh, filePath.toStdString(), _options))
   {
 
-        //// store read option
-    //IO::Options opt_ = _options;
-    
-    //// update face and vertex normals     
-    //if ( ! opt_.check( IO::Options::FaceNormal ) )
-      //m_mymesh.update_face_normals();
-    //else
-      //std::cout << "File provides face normals\n";
-    
-    //if ( ! opt_.check( IO::Options::VertexNormal ) )
-      //m_mymesh.update_vertex_normals();
-    //else
-      //std::cout << "File provides vertex normals\n";
-
-
-    //// check for possible color information
-    ////if ( opt_.check( IO::Options::VertexColor ) )
-    ////{
-      ////std::cout << "File provides vertex colors\n";
-    ////}
-    ////else
-      ////m_mymesh.release_vertex_colors();
-
-    //if ( _options.check( IO::Options::FaceColor ) )
-    //{
-      //std::cout << "File provides face colors\n";
-    //}
-    //else
-      //m_mymesh.release_face_colors();
-
-    //if ( _options.check( IO::Options::VertexTexCoord ) )
-      //std::cout << "File provides texture coordinates\n";
-
-
     models.push_back(new QtModelT<M>(m_mymesh));
-    //models.back()->mesh.request_face_normals();
-    //models.back()->mesh.request_face_colors();
-    //models.back()->mesh.request_vertex_normals();
-    //models.back()->mesh.request_vertex_colors();
-    //models.back()->mesh.request_vertex_texcoords2D();
-
 
     //if(!models.back()->hasColour())
       //models.back()->updateColour(models.size());
@@ -324,6 +283,8 @@ SceneT<M>::loadMesh(const QString filePath)
         applyNoiseButton->setHidden(false);
         groupBox->setHidden(false);
         updateNormalsButton->setHidden(false);
+        bilateralFilteringSpinBox->setHidden(false);
+        bilateralFilteringButton->setHidden(false);
         break;
       case 2:
         radio3->setHidden(false);
@@ -498,5 +459,26 @@ SceneT<M>::updateNormals()
   }
 }
 
+template <typename M>
+void
+SceneT<M>::applyBilateralFiltering()
+{
+  const int radioId = whichRadioButton();
+  for(int i = 0; i < bilateralFilteringSpinBox->value(); i++)
+  {
+    
+    if(radioId  == 1)
+    {
+      for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
+          models[i]->bilateralFiltering();
+      }
+    }
+    else
+    {
+      models[radioId-2]->bilateralFiltering();
+    }
+
+  }
+}
 
 #endif

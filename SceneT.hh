@@ -41,6 +41,8 @@ protected:
     QDoubleSpinBox *noiseSpinBox;
     QWidget *applyNoiseButton;
     QWidget *updateNormalsButton;
+    QSpinBox *bilateralFilteringSpinBox;
+    QWidget *bilateralFilteringButton;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -48,6 +50,7 @@ protected:
     void keyPressEvent( QKeyEvent* event);
     void applyNoise();
     void updateNormals();
+    void applyBilateralFiltering();
 
 private:
     QDialog *createDialog(const QString &windowTitle) const;

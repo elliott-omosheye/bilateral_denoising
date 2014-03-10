@@ -23,6 +23,7 @@ public:
       connect(m_modelButton, SIGNAL(clicked()), this, SLOT(selectMesh()));
       connect(applyNoiseButton, SIGNAL(clicked()), this, SLOT(applyNoiseSlot()));
       connect(updateNormalsButton, SIGNAL(clicked()), this, SLOT(updateNormalsSlot()));
+      connect(bilateralFilteringButton, SIGNAL(clicked()), this, SLOT(applyBilateralFilteringSlot()));
     }
 public slots:
     void selectMesh()
@@ -39,6 +40,11 @@ public slots:
     void updateNormalsSlot()
     {
       updateNormals();
+    }
+
+    void applyBilateralFilteringSlot()
+    {
+      applyBilateralFiltering();
     }
 
 };

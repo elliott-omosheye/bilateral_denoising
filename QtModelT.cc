@@ -278,4 +278,11 @@ QtModelT<M>::calcNormals()
 
 }
 
+template <typename M>
+void
+QtModelT<M>::bilateralFiltering()
+{
+  std::cout << "filter" << "\n";
+}
+
 #endif
