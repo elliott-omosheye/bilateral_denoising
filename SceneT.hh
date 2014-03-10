@@ -40,16 +40,20 @@ protected:
     QWidget *m_ex3Button;
     QDoubleSpinBox *noiseSpinBox;
     QWidget *applyNoiseButton;
+    QWidget *updateNormalsButton;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void keyPressEvent( QKeyEvent* event);
     void applyNoise();
+    void updateNormals();
 
 private:
     QDialog *createDialog(const QString &windowTitle) const;
     int whichRadioButton();
+    void setDefaultMaterial();
+    void setDefaultLight();
 
     MyMesh m_mymesh;
     QColor m_backgroundColor;

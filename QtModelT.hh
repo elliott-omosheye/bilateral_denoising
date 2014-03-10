@@ -26,8 +26,10 @@ public:
     typedef M MyMesh;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
-
+    void calcNormals();
 public:
+     M mesh;
+
     QtModelT(M& m);
     ~QtModelT();
     void render();
@@ -45,9 +47,7 @@ public:
     void mergeColours(QtModelT<M>* m2);
 
 private:
-    void calculateNormals();
-    M mesh;
-    QVector3D modelRotation;
+       QVector3D modelRotation;
     QColor modelColor;
     GLfloat vertical;
     GLfloat horizontal;

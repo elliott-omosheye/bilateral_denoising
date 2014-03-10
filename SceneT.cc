@@ -38,6 +38,17 @@ SceneT<M>::SceneT()
 , TANSLATE_SPEED(0.01f)
 {
 
+   //glClearColor(0.0, 0.0, 0.0, 0.0);
+  //glDisable( GL_DITHER );
+  //glEnable( GL_DEPTH_TEST );
+
+  //// Material
+  //setDefaultMaterial();
+  
+  //// Lighting
+  //glLoadIdentity();
+  //setDefaultLight();
+
   QWidget *examples = createDialog(tr("Examples"));
   m_ex1Button = new QPushButton(tr("Example 1 (ToDo)"));
   examples->layout()->addWidget(m_ex1Button );
@@ -63,6 +74,11 @@ SceneT<M>::SceneT()
   applyNoiseButton = new QPushButton(tr("Apply Noise"));
   controls->layout()->addWidget(applyNoiseButton);
   applyNoiseButton->setHidden(true);
+
+  updateNormalsButton = new QPushButton(tr("Update Normals"));
+  controls->layout()->addWidget(updateNormalsButton);
+  updateNormalsButton->setHidden(true);
+
 
   meshes = createDialog(tr("Meshes"));
   meshes->setHidden(true);
@@ -114,6 +130,53 @@ SceneT<M>::SceneT()
 
 template <typename M>
 void
+SceneT<M>::setDefaultMaterial(void)
+{
+  GLfloat mat_a[] = {0.1, 0.1, 0.1, 1.0};
+  GLfloat mat_d[] = {0.7, 0.7, 0.5, 1.0};
+  GLfloat mat_s[] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat shine[] = {120.0};
+  
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mat_a);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mat_d);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat_s);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shine);
+}
+
+
+//----------------------------------------------------------------------------
+
+template <typename M>
+void
+SceneT<M>::setDefaultLight(void)
+{
+  GLfloat pos1[] = { 0.1,  0.1, -0.02, 0.0};
+  GLfloat pos2[] = {-0.1,  0.1, -0.02, 0.0};
+  GLfloat pos3[] = { 0.0,  0.0,  0.1,  0.0};
+  GLfloat col1[] = { 0.7,  0.7,  0.8,  1.0};
+  GLfloat col2[] = { 0.8,  0.7,  0.7,  1.0};
+  GLfloat col3[] = { 1.0,  1.0,  1.0,  1.0};
+ 
+  glEnable(GL_LIGHT0);    
+  glLightfv(GL_LIGHT0,GL_POSITION, pos1);
+  glLightfv(GL_LIGHT0,GL_DIFFUSE,  col1);
+  glLightfv(GL_LIGHT0,GL_SPECULAR, col1);
+  
+  glEnable(GL_LIGHT1);  
+  glLightfv(GL_LIGHT1,GL_POSITION, pos2);
+  glLightfv(GL_LIGHT1,GL_DIFFUSE,  col2);
+  glLightfv(GL_LIGHT1,GL_SPECULAR, col2);
+  
+  glEnable(GL_LIGHT2);  
+  glLightfv(GL_LIGHT2,GL_POSITION, pos3);
+  glLightfv(GL_LIGHT2,GL_DIFFUSE,  col3);
+  glLightfv(GL_LIGHT2,GL_SPECULAR, col3);
+}
+
+
+
+template <typename M>
+void
 SceneT<M>::applyNoise()
 {
     std::cout << "Apply Noise" << "\n";
@@ -140,12 +203,20 @@ SceneT<M>::drawForeground(QPainter *painter, const QRectF &rect)
   if(models.size() > 0){
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
+
     glLoadIdentity();
     gluPerspective(70, width() / height(), 0.01, 1000);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
+    setDefaultMaterial();
+
+    setDefaultLight();  
     glLoadIdentity();
+
+    glEnable(GL_LIGHTING);
+    //glShadeModel(GL_FLAT);
+    //glutSolidTeapot(0.5);
 
     glTranslatef(m_horizontal, m_vertical, -m_distance);
     glRotatef(m_rotation.x(), 1, 0, 0);
@@ -200,7 +271,47 @@ SceneT<M>::loadMesh(const QString filePath)
   if(OpenMesh::IO::read_mesh(m_mymesh, filePath.toStdString(), _options))
   {
 
+        //// store read option
+    //IO::Options opt_ = _options;
+    
+    //// update face and vertex normals     
+    //if ( ! opt_.check( IO::Options::FaceNormal ) )
+      //m_mymesh.update_face_normals();
+    //else
+      //std::cout << "File provides face normals\n";
+    
+    //if ( ! opt_.check( IO::Options::VertexNormal ) )
+      //m_mymesh.update_vertex_normals();
+    //else
+      //std::cout << "File provides vertex normals\n";
+
+
+    //// check for possible color information
+    ////if ( opt_.check( IO::Options::VertexColor ) )
+    ////{
+      ////std::cout << "File provides vertex colors\n";
+    ////}
+    ////else
+      ////m_mymesh.release_vertex_colors();
+
+    //if ( _options.check( IO::Options::FaceColor ) )
+    //{
+      //std::cout << "File provides face colors\n";
+    //}
+    //else
+      //m_mymesh.release_face_colors();
+
+    //if ( _options.check( IO::Options::VertexTexCoord ) )
+      //std::cout << "File provides texture coordinates\n";
+
+
     models.push_back(new QtModelT<M>(m_mymesh));
+    //models.back()->mesh.request_face_normals();
+    //models.back()->mesh.request_face_colors();
+    //models.back()->mesh.request_vertex_normals();
+    //models.back()->mesh.request_vertex_colors();
+    //models.back()->mesh.request_vertex_texcoords2D();
+
 
     //if(!models.back()->hasColour())
       //models.back()->updateColour(models.size());
@@ -212,6 +323,7 @@ SceneT<M>::loadMesh(const QString filePath)
         noiseSpinBox->setHidden(false);
         applyNoiseButton->setHidden(false);
         groupBox->setHidden(false);
+        updateNormalsButton->setHidden(false);
         break;
       case 2:
         radio3->setHidden(false);
@@ -366,6 +478,24 @@ SceneT<M>::whichRadioButton()
   else
     return 0;
   
+}
+
+template <typename M>
+void
+SceneT<M>::updateNormals()
+{
+
+  const int radioId = whichRadioButton();
+  if(radioId  == 1)
+  {
+    for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
+        models[i]->calcNormals();
+    }
+  }
+  else
+  {
+    models[radioId-2]->calcNormals();
+  }
 }
 
 

@@ -22,6 +22,7 @@ public:
     {
       connect(m_modelButton, SIGNAL(clicked()), this, SLOT(selectMesh()));
       connect(applyNoiseButton, SIGNAL(clicked()), this, SLOT(applyNoiseSlot()));
+      connect(updateNormalsButton, SIGNAL(clicked()), this, SLOT(updateNormalsSlot()));
     }
 public slots:
     void selectMesh()
@@ -35,7 +36,10 @@ public slots:
       applyNoise();
     }
 
-
+    void updateNormalsSlot()
+    {
+      updateNormals();
+    }
 
 };
 #endif

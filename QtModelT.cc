@@ -22,6 +22,7 @@ QtModelT<M>::QtModelT(M& m)
 {
   mesh = m;
   updateColour();
+  calcNormals();
 }
 
 
@@ -35,33 +36,42 @@ template <typename M>
 void
 QtModelT<M>::render()
 {
+    typename M::ConstFaceIter    fIt(mesh.faces_begin()),
+                                 fEnd(mesh.faces_end());
 
-  //std::cout << "Render" << "\n";
-  glPushMatrix();
-  glTranslatef(horizontal, vertical, 0);
-  glRotatef(modelRotation.x(), 1, 0, 0);
-  glRotatef(modelRotation.y(), 0, 1, 0);
-  glRotatef(modelRotation.z(), 0, 0, 1);
+    typename M::ConstFaceVertexIter fvIt;
 
-  glEnable(GL_DEPTH_TEST);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  
-  //glPointSize(4.0);
-  if ( mesh.has_vertex_colors() )
-  {
-    glEnableClientState( GL_COLOR_ARRAY );
-    glColorPointer(3, GL_FLOAT, 0, mesh.vertex_colors());
-  }
-  //glColor4f(modelColor.redF(), modelColor.greenF(), modelColor.blueF(), 1.0f);
-  glVertexPointer(3, GL_FLOAT, 0, mesh.points());
-  glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(mesh.n_vertices()) );
+    //std::cout << "Render" << "\n";
+    glPushMatrix();
+    glTranslatef(horizontal, vertical, 0);
+    glRotatef(modelRotation.x(), 1, 0, 0);
+    glRotatef(modelRotation.y(), 0, 1, 0);
+    glRotatef(modelRotation.z(), 0, 0, 1);
 
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glShadeModel(GL_FLAT);
 
-  glDisableClientState(GL_COLOR_ARRAY);  
+    glEnable(GL_DEPTH_TEST);
+    glEnableClientState(GL_VERTEX_ARRAY);
 
-  glPopMatrix();
+    glBegin(GL_TRIANGLES);
+    for (; fIt!=fEnd; ++fIt)
+    {
+
+        glNormal3fv( &mesh.normal(*fIt)[0] );
+
+        fvIt = mesh.cfv_iter(*fIt);
+        glVertex3fv( &mesh.point(*fvIt)[0] );
+        ++fvIt;
+        glVertex3fv( &mesh.point(*fvIt)[0] );
+        ++fvIt;
+        glVertex3fv( &mesh.point(*fvIt)[0] );
+     }
+     glEnd();
+
+    glPopMatrix();
+
+
 
 }
 
@@ -140,6 +150,7 @@ QtModelT<M>::addNoise(double sigma)
     p = p;
     mesh.set_point( *v_it, Point(p[0]+d(gen), p[1]+d(gen), p[2]+d(gen)) );
   }
+  calcNormals();
 }
 
 
@@ -246,16 +257,25 @@ QtModelT<M>::boundingRect() const
 
 template <typename M>
 void
-QtModelT<M>::calculateNormals()
+QtModelT<M>::calcNormals()
 {
-  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+
+  //std::cout << "calcNormals()" << "\n";
+  OpenMesh::IO::Options opt;
+  mesh.request_vertex_normals();
+  // Add face normals as default property
+  mesh.request_face_normals();
+  // If the file did not provide vertex normals, then calculate them
+  if ( !opt.check( OpenMesh::IO::Options::VertexNormal ) &&
+       mesh.has_face_normals() && mesh.has_vertex_normals() )
   {
-    OpenMesh::Vec3d Normal;
-    for (typename M::VertexFaceIter vf_it=mesh.vf_iter(v_it); vf_it; ++vf_it)
-    {
-      //
-    }
+    // let the mesh update the normals
+    mesh.update_face_normals();
+    mesh.update_vertex_normals();
+
+    //std::cout << "update_normals()" << "\n";
   }
+
 }
 
 #endif
