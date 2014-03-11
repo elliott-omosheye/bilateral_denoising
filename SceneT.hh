@@ -58,6 +58,7 @@ private:
     void setDefaultMaterial();
     void setDefaultLight();
 
+
     MyMesh m_mymesh;
     QColor m_backgroundColor;
     OpenMesh::IO::Options _options;

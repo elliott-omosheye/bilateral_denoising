@@ -77,6 +77,48 @@ QtModelT<M>::render()
 
 template <typename M>
 void
+QtModelT<M>::renderBackBuffer()
+{
+  glPushMatrix();
+  glTranslatef(horizontal, vertical, 0);
+  glRotatef(modelRotation.x(), 1, 0, 0);
+  glRotatef(modelRotation.y(), 0, 1, 0);
+  glRotatef(modelRotation.z(), 0, 0, 1);
+
+  //int N = mesh.n_vertices();
+  //float inc = 1.0 / N;
+  //float r = 0.0;
+  glPointSize(2.0f);
+  glBegin(GL_POINTS);
+
+  int r = 0;
+  int g = 0;
+  int b = 0;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    if (b==255){
+      r = 0;
+      g = 0;
+      b = 0;
+    }
+    else if(r == b)
+      r++;
+    else if(g < r && g == b)
+      g++;
+    else
+      b++;
+
+    glColor3b (r, g, b);
+    glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]); 
+  }
+  glEnd();
+
+  glPopMatrix();
+
+}
+
+template <typename M>
+void
 QtModelT<M>::applyTransformations()
 {
   typedef typename M::Point Point;
@@ -297,9 +339,9 @@ QtModelT<M>::bilateralFiltering()
       float t = sqrt(pow(pointA[0],2)+pow(pointA[1],2)+pow(pointA[2],2));
 
       float h = 0.0;
-      h += mesh.point(*v_it)[0]*pointA[0];
-      h += mesh.point(*v_it)[1]*pointA[1];
-      h += mesh.point(*v_it)[2]*pointA[2];
+      h += mesh.normal(*v_it)[0]*pointA[0];
+      h += mesh.normal(*v_it)[1]*pointA[1];
+      h += mesh.normal(*v_it)[2]*pointA[2];
 
       float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
       float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));

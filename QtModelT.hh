@@ -46,6 +46,7 @@ public:
     void addNoise(double sigma);
     void mergeColours(QtModelT<M>* m2);
     void bilateralFiltering();
+    void renderBackBuffer();
 
 private:
     QVector3D modelRotation;

@@ -215,7 +215,7 @@ SceneT<M>::drawForeground(QPainter *painter, const QRectF &rect)
     glLoadIdentity();
 
     glEnable(GL_LIGHTING);
-    //glShadeModel(GL_FLAT);
+    glShadeModel(GL_FLAT);
     //glutSolidTeapot(0.5);
 
     glTranslatef(m_horizontal, m_vertical, -m_distance);
@@ -224,8 +224,23 @@ SceneT<M>::drawForeground(QPainter *painter, const QRectF &rect)
     glRotatef(m_rotation.z(), 0, 0, 1);
 
     glEnable(GL_MULTISAMPLE);
-    for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
-      models[i]->render();
+
+
+    const int radioId = whichRadioButton();
+    if (radioId == 1)
+    {
+
+      for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
+        models[i]->render();
+      }
+
+    }
+    else
+    {
+      glDisable(GL_LIGHTING);
+      glDisable(GL_TEXTURE_2D);
+      models[radioId-2]->renderBackBuffer();
+
     }
 
     glDisable(GL_MULTISAMPLE);
@@ -238,8 +253,6 @@ SceneT<M>::drawForeground(QPainter *painter, const QRectF &rect)
 
   painter->endNativePainting();
 }
-
-
 
 template <typename M>
 void
@@ -361,6 +374,37 @@ SceneT<M>::mousePressEvent(QGraphicsSceneMouseEvent *event)
   if (event->isAccepted())
     return;
   m_mouseEventTime = m_time.elapsed();
+
+  const int radioId = whichRadioButton();
+  if (radioId != 1)
+  {
+    
+    glPushMatrix();
+
+    glDisable(GL_DITHER);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    models[radioId-2]->renderBackBuffer();
+
+    GLint viewport[4];
+    GLubyte pixel[3];
+
+    glGetIntegerv(GL_VIEWPORT,viewport);
+
+    glReadPixels(event->scenePos().x(), viewport[3]-event->scenePos().y(),1,1,
+    GL_RGB,GL_UNSIGNED_BYTE,(void *)pixel);
+
+    printf("%d %d %d\n",pixel[0],pixel[1],pixel[2]);
+
+    glDisable(GL_MULTISAMPLE);
+
+    glEnable(GL_DITHER);
+
+    glPopMatrix();
+
+
+  }
+
   event->accept();
 }
 
@@ -439,14 +483,12 @@ SceneT<M>::whichRadioButton()
     return 6;
   else
     return 0;
-  
 }
 
 template <typename M>
 void
 SceneT<M>::updateNormals()
 {
-
   const int radioId = whichRadioButton();
   if(radioId  == 1)
   {
