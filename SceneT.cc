@@ -32,7 +32,7 @@ QDialog
 template <typename M>
 SceneT<M>::SceneT()
 : m_backgroundColor(0.0f, 0.0f, 0.0f)
-, m_distance(0.3f)
+, m_distance(4.5f)
 , m_vertical(-0.1f)
 , m_horizontal(0.0f)
 , TANSLATE_SPEED(0.01f)
@@ -47,41 +47,7 @@ SceneT<M>::SceneT()
   //examples->layout()->addWidget(m_ex3Button );
 
   QWidget *controls = createDialog(tr("Controls"));
-  m_modelButton = new QPushButton(tr("Load model"));
-  controls->layout()->addWidget(m_modelButton);
-
-  noiseSpinBox = new QDoubleSpinBox();
-  noiseSpinBox->setMinimum(0.00001);
-  noiseSpinBox->setMaximum(1.00);
-  noiseSpinBox->setSingleStep(0.00001);
-  //noiseSpinBox->setMinimumWidth(200);
-  noiseSpinBox->setDecimals(5);
-  noiseSpinBox->setPrefix("Noise: ");
-  controls->layout()->addWidget(noiseSpinBox);
-  noiseSpinBox->setHidden(true);
-
-  applyNoiseButton = new QPushButton(tr("Apply Noise"));
-  controls->layout()->addWidget(applyNoiseButton);
-  applyNoiseButton->setHidden(true);
-
-  updateNormalsButton = new QPushButton(tr("Update Normals"));
-  controls->layout()->addWidget(updateNormalsButton);
-  updateNormalsButton->setHidden(true);
-
-  bilateralFilteringSpinBox = new QSpinBox();
-  bilateralFilteringSpinBox->setMinimum(0);
-  bilateralFilteringSpinBox->setMaximum(20);
-  bilateralFilteringSpinBox->setPrefix("Iterations: ");
-  controls->layout()->addWidget(bilateralFilteringSpinBox);
-  bilateralFilteringSpinBox->setHidden(true);
-
-  bilateralFilteringButton = new QPushButton(tr("Apply Filter"));
-  controls->layout()->addWidget(bilateralFilteringButton);
-  bilateralFilteringButton->setHidden(true);
-
-  meshes = createDialog(tr("Meshes"));
-  meshes->setHidden(true);
-
+  
   groupBox = new QGroupBox(tr("Select Mesh"));
   radio1 = new QRadioButton(tr("All"));
   radio2 = new QRadioButton(tr("M1"));
@@ -106,10 +72,46 @@ SceneT<M>::SceneT()
 
   vbox->addStretch(1);
   groupBox->setLayout(vbox);
-  meshes->layout()->addWidget(groupBox);
+  controls->layout()->addWidget(groupBox);
 
+  m_modelButton = new QPushButton(tr("Load model"));
+  controls->layout()->addWidget(m_modelButton);
+
+  noiseSpinBox = new QDoubleSpinBox();
+  noiseSpinBox->setMinimum(0.001);
+  noiseSpinBox->setMaximum(1.00);
+  noiseSpinBox->setSingleStep(0.001);
+  //noiseSpinBox->setMinimumWidth(200);
+  noiseSpinBox->setDecimals(3);
+  noiseSpinBox->setPrefix("Noise: ");
+  controls->layout()->addWidget(noiseSpinBox);
+  noiseSpinBox->setHidden(true);
+
+  applyNoiseButton = new QPushButton(tr("Apply Noise"));
+  controls->layout()->addWidget(applyNoiseButton);
+  applyNoiseButton->setHidden(true);
+
+  updateNormalsButton = new QPushButton(tr("Update Normals"));
+  controls->layout()->addWidget(updateNormalsButton);
+  updateNormalsButton->setHidden(true);
+
+  bilateralFilteringSpinBox = new QSpinBox();
+  bilateralFilteringSpinBox->setMinimum(0);
+  bilateralFilteringSpinBox->setMaximum(20);
+  bilateralFilteringSpinBox->setPrefix("Iterations: ");
+  controls->layout()->addWidget(bilateralFilteringSpinBox);
+  bilateralFilteringSpinBox->setHidden(true);
+
+  bilateralFilteringButton = new QPushButton(tr("Apply Filter"));
+  controls->layout()->addWidget(bilateralFilteringButton);
+  bilateralFilteringButton->setHidden(true);
+
+  //meshes = createDialog(tr("Meshes"));
+  //meshes->setHidden(true);
+
+ 
   //QWidget *widgets[] = { meshes, controls, examples  };
-  QWidget *widgets[] = { meshes, controls };
+  QWidget *widgets[] = { controls };
 
   for (uint i = 0; i < sizeof(widgets) / sizeof(*widgets); ++i) {
     QGraphicsProxyWidget *proxy = new QGraphicsProxyWidget(0, Qt::Dialog);
@@ -226,22 +228,22 @@ SceneT<M>::drawForeground(QPainter *painter, const QRectF &rect)
     glEnable(GL_MULTISAMPLE);
 
 
-    const int radioId = whichRadioButton();
-    if (radioId == 1)
-    {
+    //const int radioId = whichRadioButton();
+    //if (radioId == 1)
+    //{
 
       for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
         models[i]->render();
       }
 
-    }
-    else
-    {
-      glDisable(GL_LIGHTING);
-      glDisable(GL_TEXTURE_2D);
-      models[radioId-2]->renderBackBuffer();
+    //}
+    //else
+    //{
+      //glDisable(GL_LIGHTING);
+      //glDisable(GL_TEXTURE_2D);
+      //models[radioId-2]->renderBackBuffer();
 
-    }
+    //}
 
     glDisable(GL_MULTISAMPLE);
 
@@ -292,7 +294,7 @@ SceneT<M>::loadMesh(const QString filePath)
     switch(models.size())
     {
       case 1:
-        meshes->setHidden(false);
+        //meshes->setHidden(false);
         noiseSpinBox->setHidden(false);
         applyNoiseButton->setHidden(false);
         groupBox->setHidden(false);
@@ -338,6 +340,7 @@ SceneT<M>::wheelEvent(QGraphicsSceneWheelEvent *event)
     return;
 
   m_distance *= qPow(1.2, -event->delta() / 120.);
+  //std::cout << m_distance << "\n";
   event->accept();
   update();
 }
@@ -375,35 +378,35 @@ SceneT<M>::mousePressEvent(QGraphicsSceneMouseEvent *event)
     return;
   m_mouseEventTime = m_time.elapsed();
 
-  const int radioId = whichRadioButton();
-  if (radioId != 1)
-  {
+  //const int radioId = whichRadioButton();
+  //if (radioId != 1)
+  //{
     
-    glPushMatrix();
+    //glPushMatrix();
 
-    glDisable(GL_DITHER);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-    models[radioId-2]->renderBackBuffer();
+    //glDisable(GL_DITHER);
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_TEXTURE_2D);
+    //models[radioId-2]->renderBackBuffer();
 
-    GLint viewport[4];
-    GLubyte pixel[3];
+    //GLint viewport[4];
+    //GLubyte pixel[3];
 
-    glGetIntegerv(GL_VIEWPORT,viewport);
+    //glGetIntegerv(GL_VIEWPORT,viewport);
 
-    glReadPixels(event->scenePos().x(), viewport[3]-event->scenePos().y(),1,1,
-    GL_RGB,GL_UNSIGNED_BYTE,(void *)pixel);
+    //glReadPixels(event->scenePos().x(), viewport[3]-event->scenePos().y(),1,1,
+    //GL_RGB,GL_UNSIGNED_BYTE,(void *)pixel);
 
-    printf("%d %d %d\n",pixel[0],pixel[1],pixel[2]);
+    //printf("%d %d %d\n",pixel[0],pixel[1],pixel[2]);
 
-    glDisable(GL_MULTISAMPLE);
+    //glDisable(GL_MULTISAMPLE);
 
-    glEnable(GL_DITHER);
+    //glEnable(GL_DITHER);
 
-    glPopMatrix();
+    //glPopMatrix();
 
 
-  }
+  //}
 
   event->accept();
 }
