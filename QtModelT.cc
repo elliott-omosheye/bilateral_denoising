@@ -21,6 +21,46 @@ QtModelT<M>::QtModelT(M& m)
   , deg2Rad(0.0174532925)
 {
   mesh = m;
+  double min_x, max_x, min_y, max_y, min_z, max_z;
+  bool first = true;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    if(first){
+      min_x = mesh.point(*v_it)[0];
+      max_x = mesh.point(*v_it)[0];
+      min_y = mesh.point(*v_it)[1];
+      max_y = mesh.point(*v_it)[1];
+      min_z = mesh.point(*v_it)[2];
+      max_z = mesh.point(*v_it)[2];
+      first = false;
+    }
+
+    if(mesh.point(*v_it)[0] < min_x )
+      min_x = mesh.point(*v_it)[0];
+    else if(mesh.point(*v_it)[0] > max_x )
+      max_x = mesh.point(*v_it)[0];
+
+    if(mesh.point(*v_it)[1] < min_y )
+      min_y = mesh.point(*v_it)[1];
+    else if(mesh.point(*v_it)[0] > max_y )
+      max_y = mesh.point(*v_it)[1];
+
+    if(mesh.point(*v_it)[2] < min_z )
+      min_z = mesh.point(*v_it)[2];
+    else if(mesh.point(*v_it)[2] > max_z )
+      max_z = mesh.point(*v_it)[2];
+
+  }
+  typedef typename M::Point Point;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    mesh.set_point( *v_it, Point(
+          2.0*(mesh.point(*v_it)[0]-min_x)/(max_x-min_x) - 1.0,
+          2.0*(mesh.point(*v_it)[1]-min_y)/(max_y-min_y) - 1.0,
+          2.0*(mesh.point(*v_it)[2]-min_z)/(max_z-min_z) - 1.0)
+    );
+  }
+
   updateColour();
   calcNormals();
 }
@@ -72,6 +112,48 @@ QtModelT<M>::render()
     glPopMatrix();
 
 
+
+}
+
+template <typename M>
+void
+QtModelT<M>::renderBackBuffer()
+{
+  glPushMatrix();
+  glTranslatef(horizontal, vertical, 0);
+  glRotatef(modelRotation.x(), 1, 0, 0);
+  glRotatef(modelRotation.y(), 0, 1, 0);
+  glRotatef(modelRotation.z(), 0, 0, 1);
+
+  //int N = mesh.n_vertices();
+  //float inc = 1.0 / N;
+  //float r = 0.0;
+  glPointSize(2.0f);
+  glBegin(GL_POINTS);
+
+  int r = 0;
+  int g = 0;
+  int b = 0;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    if (b==255){
+      r = 0;
+      g = 0;
+      b = 0;
+    }
+    else if(r == b)
+      r++;
+    else if(g < r && g == b)
+      g++;
+    else
+      b++;
+
+    glColor3b (r, g, b);
+    glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]); 
+  }
+  glEnd();
+
+  glPopMatrix();
 
 }
 
@@ -297,9 +379,9 @@ QtModelT<M>::bilateralFiltering()
       float t = sqrt(pow(pointA[0],2)+pow(pointA[1],2)+pow(pointA[2],2));
 
       float h = 0.0;
-      h += mesh.point(*v_it)[0]*pointA[0];
-      h += mesh.point(*v_it)[1]*pointA[1];
-      h += mesh.point(*v_it)[2]*pointA[2];
+      h += mesh.normal(*v_it)[0]*pointA[0];
+      h += mesh.normal(*v_it)[1]*pointA[1];
+      h += mesh.normal(*v_it)[2]*pointA[2];
 
       float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
       float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
