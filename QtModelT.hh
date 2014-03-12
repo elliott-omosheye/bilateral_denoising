@@ -24,12 +24,12 @@ class QtModelT : public QGraphicsItem
 {
 public:
     typedef M MyMesh;
+    typedef std::vector<std::vector< std::pair< size_t, double > > > MapTable;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
     void calcNormals();
 public:
      M mesh;
-
     QtModelT(M& m);
     ~QtModelT();
     void render();
@@ -46,7 +46,7 @@ public:
     void addNoise(double sigma);
     void mergeColours(QtModelT<M>* m2);
     void bilateralFiltering();
-
+    void nearestNeighbours(float radius, MapTable* resultTable);
 private:
     QVector3D modelRotation;
     QColor modelColor;

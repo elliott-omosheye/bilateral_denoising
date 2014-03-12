@@ -283,34 +283,113 @@ void
 QtModelT<M>::bilateralFiltering()
 {
   std::cout << "filter" << "\n";
+  MapTable map;
+  float radius = 1;
+  nearestNeighbours(2*radius, &map);
+  std::cout << "got neighbours\n";
+  PointMatrix matrix = buildMatrix();
+  int c = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
+    std::vector< std::pair< size_t, double > > neighbourhood = map[c]; c++;
+    std::vector<double> v;
+    for (size_t i = 0; i < neighbourhood.size(); i++)
+    {
+      v.reserve(neighbourhood.size());
+      Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
+      OpenMesh::Vec3f pointA = mesh.point(*v_it)-q;
+      double h = 0.0;
+      h += mesh.normal(*v_it)[0]*pointA[0];
+      h += mesh.normal(*v_it)[1]*pointA[1];
+      h += mesh.normal(*v_it)[2]*pointA[2];
+      v.push_back(h);
+    }
+    double sumv = std::accumulate(v.begin(), v.end(), 0.0);
+    double mean = sumv / v.size();
+    std::vector<double> diff(v.size());
+    std::transform(v.begin(), v.end(), diff.begin(),
+                   std::bind2nd(std::minus<double>(), mean));
+    double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+    double stdev = std::sqrt(sq_sum / v.size());
+    
     float sum = 0.0;
     float normalizer = 0.0;
-    float sigc = 1.0;
-    float sigs = 0.5;
-
-    for (typename M::VertexVertexIter vv_it=mesh.vv_iter( v_it ); vv_it; ++vv_it)
+    
+    float sigc = radius; //radius of neighbourhood
+    float sigs = stdev; //standard deviation
+    
+    for (size_t i = 0; i < neighbourhood.size(); i++)
     {
+      Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
       // Calculate Sum and normalizer
-      OpenMesh::Vec3f pointA = mesh.point(*v_it)-mesh.point(*vv_it);
-      float t = sqrt(pow(pointA[0],2)+pow(pointA[1],2)+pow(pointA[2],2));
-
+      //std::cout << q[0] << " " << q[1] << " " << q[2] << "\n";
+      OpenMesh::Vec3f pointA = mesh.point(*v_it)-q;
+      float t = pointA.length();
       float h = 0.0;
-      h += mesh.point(*v_it)[0]*pointA[0];
-      h += mesh.point(*v_it)[1]*pointA[1];
-      h += mesh.point(*v_it)[2]*pointA[2];
-
-      float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
-      float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
+      h += mesh.normal(*v_it)[0]*pointA[0];
+      h += mesh.normal(*v_it)[1]*pointA[1];
+      h += mesh.normal(*v_it)[2]*pointA[2];
+      
+      float wc = exp(-(pow(t, 2) / (2*pow(sigc,2))));
+      float ws = exp(-(pow(h, 2) / (2*pow(sigs,2))));
 
       sum += (wc * ws) * h;
       normalizer += wc + ws;
 
     }
-    mesh.set_point( *v_it, mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) ) );
+    typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) );
+    std::cout << mesh.point(*v_it) << " " << newPoint << " " << (sum / normalizer) << "\n";
+    mesh.set_point( *v_it,  newPoint);
+    //mesh.update_normals();
   }
   calcNormals();
 }
+
+template <typename M>
+void
+QtModelT<M>::nearestNeighbours(float radius, MapTable* resultTable)
+{
+  const size_t num_results = 1000;
+  
+  //build kd tree
+  PointMatrix pAll = buildMatrix();
+  typedef nanoflann::KDTreeEigenMatrixAdaptor<PointMatrix>  kd_tree_t;
+  kd_tree_t mat_index(3, pAll, 10);
+  mat_index.index->buildIndex();
+  
+  //find neighbourhood for each point
+  int i = 0;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
+  {
+    typename M::Point p = mesh.point(*v_it);
+    std::vector<double> query_pt(3);
+    query_pt[0] = p[0];
+    query_pt[1] = p[1];
+    query_pt[2] = p[2];
+    
+    std::vector< std::pair< size_t, double > > resultPairs;
+    resultPairs.reserve(num_results);
+    
+    size_t count = mat_index.index->radiusSearch(&query_pt[0], radius, resultPairs, nanoflann::SearchParams(true));
+    std::cout << resultPairs.size() << "\n";
+    /*
+    std::vector<typename M::Point> closest;
+    closest.reserve(count);
+    for (size_t i = 0; i < resultPairs.size(); i++){
+      typename M::VertexIter vv_it = mesh.vertices_begin();
+      for (size_t c = 0; c < resultPairs[i].first; c++){ // maybe c<= ??
+        ++vv_it;
+      }
+      closest.push_back(mesh.point(*vv_it));
+    }
+    resultTable[p] = closest;
+    //std::cout << closest.size() << "\n";
+    */
+    resultTable->push_back(resultPairs);
+    i++;
+  }
+  std::cout << resultTable->size() << "\n";
+}
+
 
 #endif
