@@ -42,6 +42,8 @@ protected:
     QWidget *applyNoiseButton;
     QWidget *updateNormalsButton;
     QSpinBox *bilateralFilteringSpinBox;
+    QDoubleSpinBox *radiusSpinBox;
+    QDoubleSpinBox *standardDeviationSpinBox;
     QWidget *bilateralFilteringButton;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

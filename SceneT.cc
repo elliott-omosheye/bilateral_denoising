@@ -102,6 +102,26 @@ SceneT<M>::SceneT()
   controls->layout()->addWidget(bilateralFilteringSpinBox);
   bilateralFilteringSpinBox->setHidden(true);
 
+  radiusSpinBox  = new QDoubleSpinBox();
+  radiusSpinBox ->setMinimum(0.001);
+  radiusSpinBox ->setMaximum(1.00);
+  radiusSpinBox->setSingleStep(0.001);
+  radiusSpinBox->setDecimals(3);
+
+  radiusSpinBox ->setPrefix("Radius: ");
+  controls->layout()->addWidget(radiusSpinBox );
+  radiusSpinBox ->setHidden(true);
+
+  standardDeviationSpinBox  = new QDoubleSpinBox();
+  standardDeviationSpinBox ->setMinimum(0.001);
+  standardDeviationSpinBox ->setMaximum(1.000);
+  standardDeviationSpinBox->setSingleStep(0.001);
+  standardDeviationSpinBox->setDecimals(3);
+  standardDeviationSpinBox ->setPrefix("SD: ");
+  controls->layout()->addWidget(standardDeviationSpinBox );
+  standardDeviationSpinBox ->setHidden(true);
+
+
   bilateralFilteringButton = new QPushButton(tr("Apply Filter"));
   controls->layout()->addWidget(bilateralFilteringButton);
   bilateralFilteringButton->setHidden(true);
@@ -301,6 +321,8 @@ SceneT<M>::loadMesh(const QString filePath)
         updateNormalsButton->setHidden(false);
         bilateralFilteringSpinBox->setHidden(false);
         bilateralFilteringButton->setHidden(false);
+        radiusSpinBox->setHidden(false);
+        standardDeviationSpinBox->setHidden(false);
         break;
       case 2:
         radio3->setHidden(false);
