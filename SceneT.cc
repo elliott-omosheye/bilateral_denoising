@@ -537,12 +537,16 @@ SceneT<M>::applyBilateralFiltering()
     
     if(radioId  == 1)
     {
+      //standardDeviationSpinBox->value()
+      //radiusSpinBox->value()
       for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
           models[i]->bilateralFiltering();
       }
     }
     else
     {
+      //standardDeviationSpinBox->value()
+      //radiusSpinBox->value()
       models[radioId-2]->bilateralFiltering();
     }
 
