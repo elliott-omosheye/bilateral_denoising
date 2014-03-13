@@ -47,6 +47,8 @@ public:
     void mergeColours(QtModelT<M>* m2);
     void bilateralFiltering();
     void nearestNeighbours(float radius, MapTable* resultTable);
+    void renderBackBuffer();
+
 private:
     QVector3D modelRotation;
     QColor modelColor;
