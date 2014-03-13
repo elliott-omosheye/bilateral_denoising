@@ -21,6 +21,8 @@ QtModelT<M>::QtModelT(M& m)
   , deg2Rad(0.0174532925)
 {
   mesh = m;
+  
+  gt_distance = 0.0f;
   double min_x, max_x, min_y, max_y, min_z, max_z;
   bool first = true;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
@@ -60,9 +62,10 @@ QtModelT<M>::QtModelT(M& m)
           2.0*(mesh.point(*v_it)[2]-min_z)/(max_z-min_z) - 1.0)
     );
   }
-
+  groundTruth = mesh;
   updateColour();
   calcNormals();
+  getDistFromGroundTruth();
 }
 
 
@@ -234,6 +237,7 @@ QtModelT<M>::addNoise(double sigma)
   }
   mesh.update_normals();
   calcNormals();
+  getDistFromGroundTruth();
 }
 
 
@@ -434,19 +438,19 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
     mesh.set_point( *v_it,  newPoint);
   }
   mesh.update_normals();
+  getDistFromGroundTruth();
 }
 
 template <typename M>
 void
 QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
 {
-  
   //build kd tree
   PointMatrix pAll = buildMatrix();
   typedef nanoflann::KDTreeEigenMatrixAdaptor<PointMatrix>  kd_tree_t;
   kd_tree_t mat_index(3, pAll, 10);
   mat_index.index->buildIndex();
-  
+
   //find neighbourhood for each point
   int i = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
@@ -479,6 +483,21 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
     i++;
   }
   std::cout << resultTable->size() << "\n";
+}
+
+template <typename M>
+void
+QtModelT<M>::getDistFromGroundTruth()
+{
+  gt_distance = 0.0f;
+  typename M::VertexIter gt_v_it=groundTruth.vertices_begin();
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    OpenMesh::Vec3f pointA = mesh.point(*v_it)-groundTruth.point(*gt_v_it);
+    gt_distance += pointA.length();
+    std::cout << mesh.point(*v_it) << " " << groundTruth.point(*gt_v_it) << " Dist: " << gt_distance << "\n";
+    gt_v_it++;
+  }
 }
 
 

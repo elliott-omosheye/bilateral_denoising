@@ -215,6 +215,7 @@ SceneT<M>::applyNoise()
     {
       models[radioId-2]->addNoise(noiseSpinBox->value());
     }
+  updateGTDistances();
 }
 
 template <typename M>
@@ -313,6 +314,7 @@ SceneT<M>::loadMesh(const QString filePath)
     //if(!models.back()->hasColour())
       //models.back()->updateColour(models.size());
 
+    updateGTDistances();
     switch(models.size())
     {
       case 1:
@@ -527,6 +529,7 @@ SceneT<M>::updateNormals()
   {
     models[radioId-2]->calcNormals();
   }
+  updateGTDistances();
 }
 
 template <typename M>
@@ -551,6 +554,44 @@ SceneT<M>::applyBilateralFiltering()
     }
 
   }
+  updateGTDistances();
+}
+
+template <typename M>
+void
+SceneT<M>::updateGTDistances()
+{
+  if (models.size() > 0)
+  {
+    std::stringstream sstm;
+    sstm << "M1 (" << models[0]->gt_distance << ")";
+    radio2->setText(QString::fromStdString(sstm.str()));
+  }
+  if (models.size() > 1)
+  {
+    std::stringstream sstm;
+    sstm << "M2 (" << models[1]->gt_distance << ")";
+    radio2->setText(QString::fromStdString(sstm.str()));
+  }
+  if (models.size() > 2)
+  {
+    std::stringstream sstm;
+    sstm << "M3 (" << models[2]->gt_distance << ")";
+    radio2->setText(QString::fromStdString(sstm.str()));
+  }
+  if (models.size() > 3)
+  {
+    std::stringstream sstm;
+    sstm << "M4 (" << models[3]->gt_distance << ")";
+    radio2->setText(QString::fromStdString(sstm.str()));
+  }
+  if (models.size() > 4)
+  {
+    std::stringstream sstm;
+    sstm << "M5 (" << models[4]->gt_distance << ")";
+    radio2->setText(QString::fromStdString(sstm.str()));
+  }
+
 }
 
 #endif

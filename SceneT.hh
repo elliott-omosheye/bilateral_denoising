@@ -59,7 +59,7 @@ private:
     int whichRadioButton();
     void setDefaultMaterial();
     void setDefaultLight();
-
+    void updateGTDistances();
 
     MyMesh m_mymesh;
     QColor m_backgroundColor;
