@@ -56,6 +56,7 @@ SceneT<M>::SceneT()
   radio5 = new QRadioButton(tr("M4"));
   radio6 = new QRadioButton(tr("M5"));
   groupBox->setHidden(true);
+  groupBox->setFocusPolicy(Qt::StrongFocus);
   radio3->setHidden(true);
   radio4->setHidden(true);
   radio5->setHidden(true);
@@ -78,6 +79,7 @@ SceneT<M>::SceneT()
   controls->layout()->addWidget(m_modelButton);
 
   noiseSpinBox = new QDoubleSpinBox();
+  noiseSpinBox->setFocusPolicy(Qt::StrongFocus);
   noiseSpinBox->setMinimum(0.001);
   noiseSpinBox->setMaximum(1.00);
   noiseSpinBox->setSingleStep(0.001);
@@ -96,16 +98,16 @@ SceneT<M>::SceneT()
   updateNormalsButton->setHidden(true);
 
   bilateralFilteringSpinBox = new QSpinBox();
-  bilateralFilteringSpinBox->setMinimum(0);
+  bilateralFilteringSpinBox->setMinimum(1);
   bilateralFilteringSpinBox->setMaximum(20);
   bilateralFilteringSpinBox->setPrefix("Iterations: ");
   controls->layout()->addWidget(bilateralFilteringSpinBox);
   bilateralFilteringSpinBox->setHidden(true);
 
   radiusSpinBox  = new QDoubleSpinBox();
-  radiusSpinBox ->setMinimum(0.001);
+  radiusSpinBox ->setMinimum(0.01);
   radiusSpinBox ->setMaximum(1.00);
-  radiusSpinBox->setSingleStep(0.001);
+  radiusSpinBox->setSingleStep(0.01);
   radiusSpinBox->setDecimals(3);
 
   radiusSpinBox ->setPrefix("Radius: ");
@@ -113,9 +115,9 @@ SceneT<M>::SceneT()
   radiusSpinBox ->setHidden(true);
 
   standardDeviationSpinBox  = new QDoubleSpinBox();
-  standardDeviationSpinBox ->setMinimum(0.001);
+  standardDeviationSpinBox ->setMinimum(0.005);
   standardDeviationSpinBox ->setMaximum(1.000);
-  standardDeviationSpinBox->setSingleStep(0.001);
+  standardDeviationSpinBox->setSingleStep(0.005);
   standardDeviationSpinBox->setDecimals(3);
   standardDeviationSpinBox ->setPrefix("SD: ");
   controls->layout()->addWidget(standardDeviationSpinBox );
@@ -537,17 +539,15 @@ SceneT<M>::applyBilateralFiltering()
     
     if(radioId  == 1)
     {
-      //standardDeviationSpinBox->value()
-      //radiusSpinBox->value()
       for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
-          models[i]->bilateralFiltering();
+          models[i]->bilateralFiltering(radiusSpinBox->value(),standardDeviationSpinBox->value());
       }
     }
     else
     {
       //standardDeviationSpinBox->value()
       //radiusSpinBox->value()
-      models[radioId-2]->bilateralFiltering();
+      models[radioId-2]->bilateralFiltering(radiusSpinBox->value(),standardDeviationSpinBox->value());
     }
 
   }

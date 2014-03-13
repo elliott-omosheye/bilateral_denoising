@@ -232,6 +232,7 @@ QtModelT<M>::addNoise(double sigma)
     p = p;
     mesh.set_point( *v_it, Point(p[0]+d(gen), p[1]+d(gen), p[2]+d(gen)) );
   }
+  mesh.update_normals();
   calcNormals();
 }
 
@@ -347,6 +348,7 @@ QtModelT<M>::calcNormals()
   mesh.request_vertex_normals();
   // Add face normals as default property
   mesh.request_face_normals();
+
   // If the file did not provide vertex normals, then calculate them
   if ( !opt.check( OpenMesh::IO::Options::VertexNormal ) &&
        mesh.has_face_normals() && mesh.has_vertex_normals() )
@@ -362,19 +364,19 @@ QtModelT<M>::calcNormals()
 
 template <typename M>
 void
-QtModelT<M>::bilateralFiltering()
+QtModelT<M>::bilateralFiltering(double sigc, double sigs)
 {
   std::cout << "filter" << "\n";
   MapTable map;
-  float radius = 0.1;
-  nearestNeighbours(radius, &map);
+  nearestNeighbours(sigc, &map);
   std::cout << "got neighbours\n";
   PointMatrix matrix = buildMatrix();
 
   int c = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
-    std::vector< std::pair< size_t, double > > neighbourhood = map[c]; c++;
+    std::vector< std::pair< size_t, double > > neighbourhood = map[c];
+    c++;
     
     //standard dev
     /*
@@ -403,26 +405,26 @@ QtModelT<M>::bilateralFiltering()
     
     float sum = 0.0;
     float normalizer = 0.0;
-    float sigc = radius; //radius of neighbourhood
-    float sigs = 0.001; //standard deviation
+    //float sigc = radius; //radius of neighbourhood
+    //float sigs = 0.001; //standard deviation
     
     for (size_t i = 0; i < neighbourhood.size(); i++)
     {
       Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
       // Calculate Sum and normalizer
       //std::cout << q[0] << " " << q[1] << " " << q[2] << "\n";
-      OpenMesh::Vec3f pointA = q - mesh.point(*v_it);
-      
+      OpenMesh::Vec3f pointA = mesh.point(*v_it) - q;
       float t = pointA.length();
       float h = 0.0;
-      pointA.normalize_cond();
-      h += mesh.normal(*v_it)[0]*pointA[0];
-      h += mesh.normal(*v_it)[1]*pointA[1];
-      h += mesh.normal(*v_it)[2]*pointA[2];
+      //pointA.normalize_cond();
+      typename M::Normal normalVector = mesh.normal(*v_it);
+      h += normalVector[0]*pointA[0];
+      h += normalVector[1]*pointA[1];
+      h += normalVector[2]*pointA[2];
 
       float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
       float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
-
+      if (c == 1) std::cout << h << "\n";
       sum += ((wc * ws) * h);
       normalizer += (wc + ws);
 
@@ -431,14 +433,13 @@ QtModelT<M>::bilateralFiltering()
     std::cout << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
   }
-  calcNormals();
+  mesh.update_normals();
 }
 
 template <typename M>
 void
-QtModelT<M>::nearestNeighbours(float radius, MapTable* resultTable)
+QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
 {
-  const size_t num_results = 1000;
   
   //build kd tree
   PointMatrix pAll = buildMatrix();
@@ -457,7 +458,7 @@ QtModelT<M>::nearestNeighbours(float radius, MapTable* resultTable)
     query_pt[2] = p[2];
     
     std::vector< std::pair< size_t, double > > resultPairs;
-    resultPairs.reserve(num_results);
+    resultPairs.reserve(mesh.n_vertices());
     
     size_t count = mat_index.index->radiusSearch(&query_pt[0], radius, resultPairs, nanoflann::SearchParams(true));
     std::cout << resultPairs.size() << "\n";
