@@ -366,14 +366,18 @@ QtModelT<M>::bilateralFiltering()
 {
   std::cout << "filter" << "\n";
   MapTable map;
-  float radius = 1;
-  nearestNeighbours(2*radius, &map);
+  float radius = 0.1;
+  nearestNeighbours(radius, &map);
   std::cout << "got neighbours\n";
   PointMatrix matrix = buildMatrix();
+
   int c = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
     std::vector< std::pair< size_t, double > > neighbourhood = map[c]; c++;
+    
+    //standard dev
+    /*
     std::vector<double> v;
     for (size_t i = 0; i < neighbourhood.size(); i++)
     {
@@ -393,21 +397,25 @@ QtModelT<M>::bilateralFiltering()
                    std::bind2nd(std::minus<double>(), mean));
     double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
     double stdev = std::sqrt(sq_sum / v.size());
+    std::cout << stdev << "\n";
+    /////*/
+    
     
     float sum = 0.0;
     float normalizer = 0.0;
-    
     float sigc = radius; //radius of neighbourhood
-    float sigs = stdev; //standard deviation
+    float sigs = 0.001; //standard deviation
     
     for (size_t i = 0; i < neighbourhood.size(); i++)
     {
       Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
       // Calculate Sum and normalizer
       //std::cout << q[0] << " " << q[1] << " " << q[2] << "\n";
-      OpenMesh::Vec3f pointA = mesh.point(*v_it)-q;
+      OpenMesh::Vec3f pointA = q - mesh.point(*v_it);
+      
       float t = pointA.length();
       float h = 0.0;
+      pointA.normalize_cond();
       h += mesh.normal(*v_it)[0]*pointA[0];
       h += mesh.normal(*v_it)[1]*pointA[1];
       h += mesh.normal(*v_it)[2]*pointA[2];
@@ -415,14 +423,13 @@ QtModelT<M>::bilateralFiltering()
       float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
       float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
 
-      sum += (wc * ws) * h;
-      normalizer += wc + ws;
+      sum += ((wc * ws) * h);
+      normalizer += (wc + ws);
 
     }
     typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) );
-    std::cout << mesh.point(*v_it) << " " << newPoint << " " << (sum / normalizer) << "\n";
+    std::cout << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
-    //mesh.update_normals();
   }
   calcNormals();
 }
