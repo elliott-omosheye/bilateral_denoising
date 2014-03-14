@@ -429,7 +429,8 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
       normalizer += (wc + ws);
 
     }
-    typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) );
+    typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / 1) );
+    if (c==1)
     std::cout << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
   }
