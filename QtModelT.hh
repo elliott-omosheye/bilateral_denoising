@@ -30,6 +30,8 @@ public:
     void calcNormals();
 public:
      M mesh;
+     M groundTruth;
+
     QtModelT(M& m);
     ~QtModelT();
     void render();
@@ -48,6 +50,8 @@ public:
     void bilateralFiltering(double sigc, double sigs);
     void nearestNeighbours(double radius, MapTable* resultTable);
     void renderBackBuffer();
+    void getDistFromGroundTruth();
+    float gt_distance;
 
 private:
     QVector3D modelRotation;
@@ -64,6 +68,5 @@ private:
 #  define SCENE_TEMPLATES
 #  include "QtModelT.cc"
 #endif
-
 
 #endif
