@@ -22,7 +22,7 @@ QtModelT<M>::QtModelT(M& m)
 {
   mesh = m;
   
-  gt_distance = 0.0f;
+  gt_distance = 0.0;
   double min_x, max_x, min_y, max_y, min_z, max_z;
   bool first = true;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
@@ -44,7 +44,7 @@ QtModelT<M>::QtModelT(M& m)
 
     if(mesh.point(*v_it)[1] < min_y )
       min_y = mesh.point(*v_it)[1];
-    else if(mesh.point(*v_it)[0] > max_y )
+    else if(mesh.point(*v_it)[1] > max_y )
       max_y = mesh.point(*v_it)[1];
 
     if(mesh.point(*v_it)[2] < min_z )
@@ -62,6 +62,14 @@ QtModelT<M>::QtModelT(M& m)
           2.0*(mesh.point(*v_it)[2]-min_z)/(max_z-min_z) - 1.0)
     );
   }
+
+  
+  if (!OpenMesh::IO::write_mesh(mesh, "bunnyout.stl")) 
+  {
+    std::cerr << "write error\n";
+    exit(1);
+  }
+
   groundTruth = mesh;
   updateColour();
   calcNormals();
