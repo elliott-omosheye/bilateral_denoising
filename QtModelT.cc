@@ -21,7 +21,9 @@ QtModelT<M>::QtModelT(M& m)
   , deg2Rad(0.0174532925)
 {
   mesh = m;
-  
+
+  calcNormals();
+
   gt_distance = 0.0;
   double min_x, max_x, min_y, max_y, min_z, max_z;
   bool first = true;
