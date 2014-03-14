@@ -105,20 +105,20 @@ SceneT<M>::SceneT()
   bilateralFilteringSpinBox->setHidden(true);
 
   radiusSpinBox  = new QDoubleSpinBox();
-  radiusSpinBox ->setMinimum(0.01);
-  radiusSpinBox ->setMaximum(1.00);
-  radiusSpinBox->setSingleStep(0.01);
-  radiusSpinBox->setDecimals(3);
+  radiusSpinBox ->setMinimum(0.1);
+  radiusSpinBox ->setMaximum(10.00);
+  radiusSpinBox->setSingleStep(0.1);
+  radiusSpinBox->setDecimals(4);
 
   radiusSpinBox ->setPrefix("Radius: ");
   controls->layout()->addWidget(radiusSpinBox );
   radiusSpinBox ->setHidden(true);
 
   standardDeviationSpinBox  = new QDoubleSpinBox();
-  standardDeviationSpinBox ->setMinimum(0.005);
+  standardDeviationSpinBox ->setMinimum(0.1);
   standardDeviationSpinBox ->setMaximum(1.000);
-  standardDeviationSpinBox->setSingleStep(0.005);
-  standardDeviationSpinBox->setDecimals(3);
+  standardDeviationSpinBox->setSingleStep(0.1);
+  standardDeviationSpinBox->setDecimals(4);
   standardDeviationSpinBox ->setPrefix("SD: ");
   controls->layout()->addWidget(standardDeviationSpinBox );
   standardDeviationSpinBox ->setHidden(true);

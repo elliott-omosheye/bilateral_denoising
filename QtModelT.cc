@@ -64,7 +64,7 @@ QtModelT<M>::QtModelT(M& m)
   }
 
   
-  if (!OpenMesh::IO::write_mesh(mesh, "bunnyout.stl")) 
+  if (!OpenMesh::IO::write_mesh(mesh, "out_box.stl")) 
   {
     std::cerr << "write error\n";
     exit(1);
@@ -120,6 +120,16 @@ QtModelT<M>::render()
      }
      glEnd();
 
+    glBegin(GL_LINES);
+    glLineWidth(2.0f);
+    for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+    {
+      glColor3b (255, 255, 255);
+      glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]);
+      glVertex3f(mesh.point(*v_it)[0]+mesh.normal(*v_it)[0], mesh.point(*v_it)[1]+mesh.normal(*v_it)[1], mesh.point(*v_it)[2]+mesh.normal(*v_it)[2]);
+
+    }
+    glEnd();
     glPopMatrix();
 
 
@@ -441,8 +451,8 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
       normalizer += (wc + ws);
 
     }
-    typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * (sum / normalizer) );
-    std::cout << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
+    typename M::Point newPoint = mesh.point(*v_it)+(mesh.normal(*v_it) * 0.1 );
+    std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
   }
   mesh.update_normals();
@@ -455,6 +465,9 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
 {
   //build kd tree
   PointMatrix pAll = buildMatrix();
+
+  std::cout << pAll << "\n";
+
   typedef nanoflann::KDTreeEigenMatrixAdaptor<PointMatrix>  kd_tree_t;
   kd_tree_t mat_index(3, pAll, 10);
   mat_index.index->buildIndex();
@@ -463,17 +476,22 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
   int i = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
   {
+    
+    
     typename M::Point p = mesh.point(*v_it);
     std::vector<double> query_pt(3);
     query_pt[0] = p[0];
     query_pt[1] = p[1];
     query_pt[2] = p[2];
     
+    std::cout << p << "\n";
+    
     std::vector< std::pair< size_t, double > > resultPairs;
     resultPairs.reserve(mesh.n_vertices());
     
     size_t count = mat_index.index->radiusSearch(&query_pt[0], radius, resultPairs, nanoflann::SearchParams(true));
     std::cout << resultPairs.size() << "\n";
+    //std::cout << resultPairs << "\n";
     /*
     std::vector<typename M::Point> closest;
     closest.reserve(count);
@@ -497,15 +515,19 @@ template <typename M>
 void
 QtModelT<M>::getDistFromGroundTruth()
 {
+  std::cout << "getDist" << "\n";
   gt_distance = 0.0f;
+  int count = 0;
   typename M::VertexIter gt_v_it=groundTruth.vertices_begin();
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
     OpenMesh::Vec3f pointA = mesh.point(*v_it)-groundTruth.point(*gt_v_it);
     gt_distance += pointA.length();
-    std::cout << mesh.point(*v_it) << " " << groundTruth.point(*gt_v_it) << " Dist: " << gt_distance << "\n";
+    //std::cout << mesh.point(*v_it) << " " << groundTruth.point(*gt_v_it) << " Dist: " << gt_distance << "\n";
     gt_v_it++;
+    count++;
   }
+  gt_distance = gt_distance / mesh.n_vertices();
 }
 
 
