@@ -446,16 +446,25 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
       h += normalVector[1]*pointA[1];
       h += normalVector[2]*pointA[2];
 
-      float wc = exp(-pow(t, 2) / (2*pow(sigc,2)));
-      float ws = exp(-pow(h, 2) / (2*pow(sigs,2)));
+      float wc = exp(-t*t / (2*pow(sigc,2)));
+      float ws = exp(-h*h / (2*pow(sigs,2)));
       if (c == 1) std::cout << h << "\n";
       sum += ((wc * ws) * h);
-      normalizer += (wc + ws);
+      normalizer += (wc * ws);
 
     }
     typename M::Point newPoint = mesh.point(*v_it) + (mesh.normal(*v_it) * (sum / normalizer) );
     std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
+    
+        //float sum = 0.0;
+    //float normalizer = 0.0;
+
+    //for (MyMesh::VertexVertexIter vv_it=mesh.vv_iter(v_it.handle()); vv_it; ++vv_it)
+    //{
+    //// do something with e.g. mesh.point(*vv_it)
+    //}
+
   }
   mesh.update_normals();
   getDistFromGroundTruth();
