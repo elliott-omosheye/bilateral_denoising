@@ -523,10 +523,25 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
 }
 
 template <typename M>
+float
+QtModelT<M>::triangleArea(typename M::ConstFaceVertexIter fvIt)
+{
+  
+}
+
+
+template <typename M>
 void
 QtModelT<M>::getDistFromGroundTruth()
 {
-  
+  typename M::ConstFaceIter    fIt(mesh.faces_begin()),
+                               fEnd(mesh.faces_end());
+  for (; fIt!=fEnd; ++fIt)
+  {
+     triangleArea( &mesh.normal(*fIt) );
+  }
+
+  gt_distance = 0.5f;
 }
 
 

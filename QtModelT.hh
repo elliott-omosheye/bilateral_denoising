@@ -60,6 +60,8 @@ private:
     GLfloat horizontal;
     GLfloat depth;
     const float deg2Rad;
+    float calcArea();
+    float triangleArea(typename M::ConstFaceVertexIter fvIt);
 
 
 };

@@ -18,7 +18,8 @@ struct MyTraits : public OpenMesh::DefaultTraits
 };
 
 typedef OpenMesh::TriMesh_ArrayKernelT<MyTraits>  MyMesh;
-
+//typedef MyMesh::ConstFaceVertexIter FVI;
+typedef MyMesh::Point Point;
 typedef Eigen::MatrixX3d PointMatrix;
 
 
