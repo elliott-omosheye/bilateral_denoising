@@ -12,7 +12,6 @@ using namespace Qt;
 using namespace OpenMesh;
 
 
-
 class Scene : public SceneT<MyMesh>
 {
   Q_OBJECT

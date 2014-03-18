@@ -122,16 +122,16 @@ QtModelT<M>::render()
      }
      glEnd();
 
-    glBegin(GL_LINES);
-    glLineWidth(2.0f);
-    for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
-    {
-      glColor3b (255, 255, 255);
-      glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]);
-      glVertex3f(mesh.point(*v_it)[0]+mesh.normal(*v_it)[0], mesh.point(*v_it)[1]+mesh.normal(*v_it)[1], mesh.point(*v_it)[2]+mesh.normal(*v_it)[2]);
+    //glBegin(GL_LINES);
+    //glLineWidth(2.0f);
+    //for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+    //{
+      //glColor3b (255, 255, 255);
+      //glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]);
+      //glVertex3f(mesh.point(*v_it)[0]+mesh.normal(*v_it)[0], mesh.point(*v_it)[1]+mesh.normal(*v_it)[1], mesh.point(*v_it)[2]+mesh.normal(*v_it)[2]);
 
-    }
-    glEnd();
+    //}
+    //glEnd();
     glPopMatrix();
 
 
@@ -453,7 +453,7 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
       normalizer += (wc * ws);
 
     }
-    typename M::Point newPoint = mesh.point(*v_it) + (mesh.normal(*v_it) * (sum / normalizer) );
+    typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
     std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
     
@@ -526,19 +526,7 @@ template <typename M>
 void
 QtModelT<M>::getDistFromGroundTruth()
 {
-  std::cout << "getDist" << "\n";
-  gt_distance = 0.0f;
-  int count = 0;
-  typename M::VertexIter gt_v_it=groundTruth.vertices_begin();
-  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
-  {
-    OpenMesh::Vec3f pointA = mesh.point(*v_it)-groundTruth.point(*gt_v_it);
-    gt_distance += pointA.length();
-    //std::cout << mesh.point(*v_it) << " " << groundTruth.point(*gt_v_it) << " Dist: " << gt_distance << "\n";
-    gt_v_it++;
-    count++;
-  }
-  gt_distance = gt_distance / mesh.n_vertices();
+  
 }
 
 
