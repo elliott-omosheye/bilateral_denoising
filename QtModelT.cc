@@ -132,53 +132,52 @@ QtModelT<M>::render()
 
     //}
     //glEnd();
+
     glPopMatrix();
 
-
-
 }
 
-template <typename M>
-void
-QtModelT<M>::renderBackBuffer()
-{
-  glPushMatrix();
-  glTranslatef(horizontal, vertical, 0);
-  glRotatef(modelRotation.x(), 1, 0, 0);
-  glRotatef(modelRotation.y(), 0, 1, 0);
-  glRotatef(modelRotation.z(), 0, 0, 1);
+//template <typename M>
+//void
+//QtModelT<M>::renderBackBuffer()
+//{
+  //glPushMatrix();
+  //glTranslatef(horizontal, vertical, 0);
+  //glRotatef(modelRotation.x(), 1, 0, 0);
+  //glRotatef(modelRotation.y(), 0, 1, 0);
+  //glRotatef(modelRotation.z(), 0, 0, 1);
 
-  //int N = mesh.n_vertices();
-  //float inc = 1.0 / N;
-  //float r = 0.0;
-  glPointSize(2.0f);
-  glBegin(GL_POINTS);
+  ////int N = mesh.n_vertices();
+  ////float inc = 1.0 / N;
+  ////float r = 0.0;
+  //glPointSize(2.0f);
+  //glBegin(GL_POINTS);
 
-  int r = 0;
-  int g = 0;
-  int b = 0;
-  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
-  {
-    if (b==255){
-      r = 0;
-      g = 0;
-      b = 0;
-    }
-    else if(r == b)
-      r++;
-    else if(g < r && g == b)
-      g++;
-    else
-      b++;
+  //int r = 0;
+  //int g = 0;
+  //int b = 0;
+  //for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  //{
+    //if (b==255){
+      //r = 0;
+      //g = 0;
+      //b = 0;
+    //}
+    //else if(r == b)
+      //r++;
+    //else if(g < r && g == b)
+      //g++;
+    //else
+      //b++;
 
-    glColor3b (r, g, b);
-    glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]); 
-  }
-  glEnd();
+    //glColor3b (r, g, b);
+    //glVertex3f(mesh.point(*v_it)[0], mesh.point(*v_it)[1], mesh.point(*v_it)[2]); 
+  //}
+  //glEnd();
 
-  glPopMatrix();
+  //glPopMatrix();
 
-}
+//}
 
 template <typename M>
 void
@@ -522,26 +521,104 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
   std::cout << resultTable->size() << "\n";
 }
 
+
 template <typename M>
-float
-QtModelT<M>::triangleArea(typename M::ConstFaceVertexIter fvIt)
+float 
+QtModelT<M>::calcMeshArea()
 {
-  
+  float area = 0.0f;
+  for (typename M::FaceIter f_it=mesh.faces_begin(); f_it!=mesh.faces_end(); ++f_it)
+  {
+    typename M::ConstFaceVertexIter fvIt = mesh.cfv_iter(f_it);
+    area += faceArea(fvIt);
+  }
+  return area;
 }
 
+template <typename M>
+float 
+QtModelT<M>::faceArea(typename M::ConstFaceVertexIter fvIt)
+{
+  Point *a = &mesh.point(*fvIt);
+  ++fvIt;
+  Point *b = &mesh.point(*fvIt);
+  ++fvIt;
+  Point *c = &mesh.point(*fvIt);
+  ++fvIt;
+
+  Point x = c[0] - a[0];
+  Point y = c[0] - b[0];
+  Point xy_dot = (x % y);
+  float xy_dot_len = xy_dot.length();
+  float area = 0.5 * xy_dot_len;
+  return area;
+}
 
 template <typename M>
 void
 QtModelT<M>::getDistFromGroundTruth()
 {
-  typename M::ConstFaceIter    fIt(mesh.faces_begin()),
-                               fEnd(mesh.faces_end());
-  for (; fIt!=fEnd; ++fIt)
+  float errorMetric = 0.0f;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
   {
-     triangleArea( &mesh.normal(*fIt) );
-  }
+    float neighbourArea = 0.0f;
+    typename M::VertexFaceIter vflt, vfBegin;
+    vfBegin = mesh.vf_iter(v_it);
+    for(vflt = vfBegin; vflt; ++vflt)
+    {
+      typename M::ConstFaceVertexIter fvIt = mesh.cfv_iter(vflt);
+      neighbourArea += faceArea(fvIt);
+    }
 
-  gt_distance = 0.5f;
+    float minDistToMesh = 0.0f;
+    bool first = true;
+    vfBegin = groundTruth.vf_iter(v_it);
+    for(vflt = vfBegin; vflt; ++vflt)
+    {
+      typename M::ConstFaceVertexIter fvIt = groundTruth.cfv_iter(vflt);
+      Point *v = &mesh.point(*v_it);
+      float distToFace = pointFaceDist(fvIt, *v);
+      if(first){
+        first = false;
+        minDistToMesh = distToFace;
+      }
+
+      if(distToFace < minDistToMesh)
+        minDistToMesh = distToFace;
+    }
+
+    errorMetric += neighbourArea * (minDistToMesh * minDistToMesh);
+
+  }
+  gt_distance = (1 / (3*calcMeshArea()) * errorMetric) ;
+}
+
+
+//Not 100% sure that this is right
+template <typename M>
+float
+QtModelT<M>::pointFaceDist(typename M::ConstFaceVertexIter fvIt, Point p)
+{
+  Point *a = &mesh.point(*fvIt);
+  ++fvIt;
+  Point *b = &mesh.point(*fvIt);
+  ++fvIt;
+  Point *c = &mesh.point(*fvIt);
+  ++fvIt;
+
+  Point v1 = b[0] - a[0];
+  Point v2 = c[0] - a[0];
+
+  Point nVec = (v1 % v2);
+  Point n = nVec / nVec.length();
+
+  float pointPlaneDist = dot(n, p);
+  Point pointOnPlane = p - (n * pointPlaneDist);
+  //float alpha = ;
+  //float beta = ;
+  //float gamma = ;
+
+  return 2.0f;
 }
 
 

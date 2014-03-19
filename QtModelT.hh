@@ -49,7 +49,7 @@ public:
     void mergeColours(QtModelT<M>* m2);
     void bilateralFiltering(double sigc, double sigs);
     void nearestNeighbours(double radius, MapTable* resultTable);
-    void renderBackBuffer();
+    //void renderBackBuffer();
     void getDistFromGroundTruth();
     float gt_distance;
 
@@ -60,8 +60,9 @@ private:
     GLfloat horizontal;
     GLfloat depth;
     const float deg2Rad;
-    float calcArea();
-    float triangleArea(typename M::ConstFaceVertexIter fvIt);
+    float calcMeshArea();
+    float faceArea(typename M::ConstFaceVertexIter fvIt);
+    float pointFaceDist(typename M::ConstFaceVertexIter f, Point p);
 
 
 };
