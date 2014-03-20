@@ -63,6 +63,8 @@ private:
     float calcMeshArea();
     float faceArea(typename M::ConstFaceVertexIter fvIt);
     float pointFaceDist(typename M::ConstFaceVertexIter f, Point p);
+    float sign(float i);
+    bool  pointInsideTraingle(Point *a, Point *b, Point *c, Point p);
 
 
 };

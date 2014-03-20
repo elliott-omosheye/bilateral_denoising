@@ -11,6 +11,8 @@
 #include <random>
 #include <cmath>
 #include <math.h> 
+#include <stdlib.h>
+
 
 template <typename M>
 QtModelT<M>::QtModelT(M& m)
@@ -559,6 +561,9 @@ void
 QtModelT<M>::getDistFromGroundTruth()
 {
   float errorMetric = 0.0f;
+
+  typename M::VertexIter gt_v_it=groundTruth.vertices_begin();
+
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
   {
     float neighbourArea = 0.0f;
@@ -570,31 +575,32 @@ QtModelT<M>::getDistFromGroundTruth()
       neighbourArea += faceArea(fvIt);
     }
 
-    float minDistToMesh = 0.0f;
-    bool first = true;
-    vfBegin = groundTruth.vf_iter(v_it);
-    for(vflt = vfBegin; vflt; ++vflt)
-    {
-      typename M::ConstFaceVertexIter fvIt = groundTruth.cfv_iter(vflt);
-      Point *v = &mesh.point(*v_it);
-      float distToFace = pointFaceDist(fvIt, *v);
-      if(first){
-        first = false;
-        minDistToMesh = distToFace;
-      }
+    //float minDistToMesh = 0.0f;
+    //bool first = true;
+    //vfBegin = groundTruth.vf_iter(v_it);
+    //for(vflt = vfBegin; vflt; ++vflt)
+    //{
+      //typename M::ConstFaceVertexIter fvIt = groundTruth.cfv_iter(vflt);
+      //Point *v = &mesh.point(*v_it);
+      //float distToFace = pointFaceDist(fvIt, *v);
+      //if(first){
+        //first = false;
+        //minDistToMesh = distToFace;
+      //}
 
-      if(distToFace < minDistToMesh)
-        minDistToMesh = distToFace;
-    }
+      //if(distToFace < minDistToMesh)
+        //minDistToMesh = distToFace;
+    //}
+
+    float minDistToMesh = (mesh.point(*v_it)-groundTruth.point(*gt_v_it)).length();
 
     errorMetric += neighbourArea * (minDistToMesh * minDistToMesh);
 
+    gt_v_it++;
   }
-  gt_distance = (1 / (3*calcMeshArea()) * errorMetric) ;
+  gt_distance = (1 / (3 * calcMeshArea()) * errorMetric) ;
 }
 
-
-//Not 100% sure that this is right
 template <typename M>
 float
 QtModelT<M>::pointFaceDist(typename M::ConstFaceVertexIter fvIt, Point p)
@@ -614,11 +620,31 @@ QtModelT<M>::pointFaceDist(typename M::ConstFaceVertexIter fvIt, Point p)
 
   float pointPlaneDist = dot(n, p);
   Point pointOnPlane = p - (n * pointPlaneDist);
-  //float alpha = ;
-  //float beta = ;
-  //float gamma = ;
 
-  return 2.0f;
+  //Large distance if not on face
+  float distToFace = 10.0f;
+  if(pointInsideTraingle(a, b, c, pointOnPlane))
+  {
+    distToFace = pointPlaneDist;
+  }
+  return distToFace;
+}
+
+template <typename M>
+bool
+QtModelT<M>::pointInsideTraingle(Point *a, Point *b, Point *c, Point p)
+{
+  float planeAB = (a[0][0] - p[0]) * (b[0][1] - p[1]) - (b[0][0] - p[1]) * (a[0][1] - p[1]);
+  float planeBC = (b[0][0] - p[0]) * (c[0][1] - p[1]) - (c[0][0] - p[1]) * (b[0][1] - p[1]);
+  float planeCA = (c[0][0] - p[0]) * (a[0][1] - p[1]) - (a[0][0] - p[1]) * (c[0][1] - p[1]);
+  return sign(planeAB) == sign(planeBC) && sign(planeBC) == sign(planeCA);
+}
+
+template <typename M>
+float
+QtModelT<M>::sign(float i)
+{
+  return abs(i) / i;
 }
 
 
