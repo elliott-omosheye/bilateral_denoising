@@ -68,11 +68,7 @@ QtModelT<M>::QtModelT(M& m)
   }
 
   
-  if (!OpenMesh::IO::write_mesh(mesh, "out_box.stl")) 
-  {
-    std::cerr << "write error\n";
-    exit(1);
-  }
+
 
   groundTruth = mesh;
   updateColour();
@@ -259,6 +255,11 @@ QtModelT<M>::addNoise(double sigma)
   mesh.update_normals();
   calcNormals();
   getDistFromGroundTruth();
+  if (!OpenMesh::IO::write_mesh(mesh, "output_noisey_mesh.stl")) 
+  {
+    std::cerr << "write error\n";
+    exit(1);
+  }
 }
 
 
@@ -469,6 +470,11 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
   }
   mesh.update_normals();
   getDistFromGroundTruth();
+  if (!OpenMesh::IO::write_mesh(mesh, "output_smoothed_mesh.stl")) 
+  {
+    std::cerr << "write error\n";
+    exit(1);
+  }
 }
 
 template <typename M>

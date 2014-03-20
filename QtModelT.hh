@@ -60,6 +60,7 @@ private:
     GLfloat horizontal;
     GLfloat depth;
     const float deg2Rad;
+    float calcMeshAreaGT();
     float calcMeshArea();
     float faceArea(typename M::ConstFaceVertexIter fvIt);
     float pointFaceDist(typename M::ConstFaceVertexIter f, Point p);
