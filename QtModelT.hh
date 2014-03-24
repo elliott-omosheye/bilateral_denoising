@@ -43,6 +43,7 @@ public:
     M* getMesh(){ return &mesh; }
     PointMatrix buildMatrix();
     PointMatrix buildSampledMatrix();
+    PointMatrix buildNormalMatrix();
     int getNoVerticies();
     void updateTransformations(Matrix<double, 3, 3>& R, double x, double y, double z);
     void addNoise(double sigma);

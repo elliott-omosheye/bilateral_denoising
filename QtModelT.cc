@@ -221,6 +221,24 @@ QtModelT<M>::buildMatrix()
 }
 
 template <typename M>
+PointMatrix//flann::Matrix<float>
+QtModelT<M>::buildNormalMatrix()
+{
+  PointMatrix m(mesh.n_vertices(), 3);
+  int count = 0;
+
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    m(count, 0) = mesh.normal(*v_it)[0];
+    m(count, 1) = mesh.normal(*v_it)[1];
+    m(count, 2) = mesh.normal(*v_it)[2];
+    count += 1;
+  }
+  return m;
+}
+
+
+template <typename M>
 void
 QtModelT<M>::updateTransformations(Matrix<double, 3, 3>& R, double x, double y, double z)
 {
@@ -234,7 +252,6 @@ QtModelT<M>::updateTransformations(Matrix<double, 3, 3>& R, double x, double y, 
   }
   render();
 }
-
 
 
 template <typename M>
@@ -397,30 +414,66 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
   nearestNeighbours(sigc, &map);
   std::cout << "got neighbours\n";
   PointMatrix matrix = buildMatrix();
-
+  PointMatrix normalMatrix = buildNormalMatrix();
   int c = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
   {
+    int parrallel = 0;
+    int notParrallel = 0;
     std::vector< std::pair< size_t, double > > neighbourhood = map[c];
     c++;
     float sum = 0.0;
     float normalizer = 0.0;
-    //float sigc = radius; //radius of neighbourhood
-    //float sigs = 0.001; //standard deviation
-    
+
+    typename M::Normal normalVector = mesh.normal(*v_it);
     for (size_t i = 0; i < neighbourhood.size(); i++)
     {
       Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
-      // Calculate Sum and normalizer
-      //std::cout << q[0] << " " << q[1] << " " << q[2] << "\n";
+      
+
       OpenMesh::Vec3f pointA = mesh.point(*v_it) - q;
       float t = pointA.length();
       float h = 0.0;
-      //pointA.normalize_cond();
-      typename M::Normal normalVector = mesh.normal(*v_it);
+
       h += normalVector[0]*pointA[0];
       h += normalVector[1]*pointA[1];
       h += normalVector[2]*pointA[2];
+
+
+      Vec3f n = Vec3f(normalMatrix(neighbourhood[i].first, 0), normalMatrix(neighbourhood[i].first, 1), normalMatrix(neighbourhood[i].first, 2));
+      Vec3f nCrossn = Vec3f(n[1]*normalVector[2] - n[2]*normalVector[1], n[2]*normalVector[0] - n[0]*normalVector[2], n[0]*normalVector[1] - n[1]*normalVector[0]);
+
+
+      if(nCrossn.length() == 0)
+        parrallel++;
+      else
+        notParrallel++;
+
+
+
+      //std::cout << "normalVector: " << normalVector.length() << "\n";
+      //std::cout << "n: " << n.length() << "\n";
+      //std::cout << "normalVector: " << normalVector << "\n";
+      //std::cout << "n: " << n << "\n";
+      std::cout << "nCrossn: " << nCrossn.length() << "\n";
+      std::cout << "nCrossn: " << nCrossn << "\n";
+
+     
+
+      //if((1-nCrossn.length()) < 0.0f){
+          //std::cout << (1-nCrossn.length()) << "\n";
+          //std::cerr << "nCrossN Error\n";
+          //exit(1);
+
+      //}
+
+     ////if(nCrossn.length() == 1){
+          ////std::cerr << "nCrossN equals \n";
+          ////exit(1);
+
+      ////}
+
+      h = h * (1 - nCrossn.length());
 
       float wc = exp(-t*t / (2*pow(sigc,2)));
       float ws = exp(-h*h / (2*pow(sigs,2)));
@@ -430,16 +483,10 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
 
     }
     typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
-    std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
+    //std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
-
-    //float sum = 0.0;
-    //float normalizer = 0.0;
-
-    //for (MyMesh::VertexVertexIter vv_it=mesh.vv_iter(v_it.handle()); vv_it; ++vv_it)
-    //{
-    //// do something with e.g. mesh.point(*vv_it)
-    //}
+    std::cout << "Parallel: " << parrallel << "\n";
+    std::cout << "Not Parallel: " << notParrallel << "\n";
 
   }
   mesh.update_normals();
@@ -462,6 +509,7 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
   nearestNeighbours(sigc, &map);
   std::cout << "got neighbours\n";
   PointMatrix matrix = buildMatrix();
+  
 
   int c = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
@@ -469,30 +517,7 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
     std::vector< std::pair< size_t, double > > neighbourhood = map[c];
     c++;
     
-    //standard dev
-    /*
-    std::vector<double> v;
-    for (size_t i = 0; i < neighbourhood.size(); i++)
-    {
-      v.reserve(neighbourhood.size());
-      Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
-      OpenMesh::Vec3f pointA = mesh.point(*v_it)-q;
-      double h = 0.0;
-      h += mesh.normal(*v_it)[0]*pointA[0];
-      h += mesh.normal(*v_it)[1]*pointA[1];
-      h += mesh.normal(*v_it)[2]*pointA[2];
-      v.push_back(h);
-    }
-    double sumv = std::accumulate(v.begin(), v.end(), 0.0);
-    double mean = sumv / v.size();
-    std::vector<double> diff(v.size());
-    std::transform(v.begin(), v.end(), diff.begin(),
-                   std::bind2nd(std::minus<double>(), mean));
-    double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    double stdev = std::sqrt(sq_sum / v.size());
-    std::cout << stdev << "\n";
-    /////*/
-    
+
     
     float sum = 0.0;
     float normalizer = 0.0;
@@ -524,13 +549,7 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
     std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
     
-        //float sum = 0.0;
-    //float normalizer = 0.0;
 
-    //for (MyMesh::VertexVertexIter vv_it=mesh.vv_iter(v_it.handle()); vv_it; ++vv_it)
-    //{
-    //// do something with e.g. mesh.point(*vv_it)
-    //}
 
   }
   mesh.update_normals();
