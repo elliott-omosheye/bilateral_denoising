@@ -390,6 +390,71 @@ QtModelT<M>::calcNormals()
 
 template <typename M>
 void
+QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
+{
+  std::cout << "extended filter" << "\n";
+  MapTable map;
+  nearestNeighbours(sigc, &map);
+  std::cout << "got neighbours\n";
+  PointMatrix matrix = buildMatrix();
+
+  int c = 0;
+  for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it) 
+  {
+    std::vector< std::pair< size_t, double > > neighbourhood = map[c];
+    c++;
+    float sum = 0.0;
+    float normalizer = 0.0;
+    //float sigc = radius; //radius of neighbourhood
+    //float sigs = 0.001; //standard deviation
+    
+    for (size_t i = 0; i < neighbourhood.size(); i++)
+    {
+      Vec3f q = Vec3f(matrix(neighbourhood[i].first, 0), matrix(neighbourhood[i].first, 1),matrix(neighbourhood[i].first, 2));
+      // Calculate Sum and normalizer
+      //std::cout << q[0] << " " << q[1] << " " << q[2] << "\n";
+      OpenMesh::Vec3f pointA = mesh.point(*v_it) - q;
+      float t = pointA.length();
+      float h = 0.0;
+      //pointA.normalize_cond();
+      typename M::Normal normalVector = mesh.normal(*v_it);
+      h += normalVector[0]*pointA[0];
+      h += normalVector[1]*pointA[1];
+      h += normalVector[2]*pointA[2];
+
+      float wc = exp(-t*t / (2*pow(sigc,2)));
+      float ws = exp(-h*h / (2*pow(sigs,2)));
+      if (c == 1) std::cout << h << "\n";
+      sum += ((wc * ws) * h);
+      normalizer += (wc * ws);
+
+    }
+    typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
+    std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
+    mesh.set_point( *v_it,  newPoint);
+
+    //float sum = 0.0;
+    //float normalizer = 0.0;
+
+    //for (MyMesh::VertexVertexIter vv_it=mesh.vv_iter(v_it.handle()); vv_it; ++vv_it)
+    //{
+    //// do something with e.g. mesh.point(*vv_it)
+    //}
+
+  }
+  mesh.update_normals();
+  getDistFromGroundTruth();
+  if (!OpenMesh::IO::write_mesh(mesh, "output_smoothed_mesh.stl")) 
+  {
+    std::cerr << "write error\n";
+    exit(1);
+  }
+}
+
+
+
+template <typename M>
+void
 QtModelT<M>::bilateralFiltering(double sigc, double sigs)
 {
   std::cout << "filter" << "\n";

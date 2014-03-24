@@ -45,6 +45,7 @@ protected:
     QDoubleSpinBox *radiusSpinBox;
     QDoubleSpinBox *standardDeviationSpinBox;
     QWidget *bilateralFilteringButton;
+    QWidget *extendedBilateralFilteringButton;
     void wheelEvent(QGraphicsSceneWheelEvent * wheelEvent);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -53,6 +54,7 @@ protected:
     void applyNoise();
     void updateNormals();
     void applyBilateralFiltering();
+    void applyExtendedBilateralFiltering();
 
 private:
     QDialog *createDialog(const QString &windowTitle) const;

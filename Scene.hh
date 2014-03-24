@@ -23,6 +23,7 @@ public:
       connect(applyNoiseButton, SIGNAL(clicked()), this, SLOT(applyNoiseSlot()));
       connect(updateNormalsButton, SIGNAL(clicked()), this, SLOT(updateNormalsSlot()));
       connect(bilateralFilteringButton, SIGNAL(clicked()), this, SLOT(applyBilateralFilteringSlot()));
+      connect(extendedBilateralFilteringButton, SIGNAL(clicked()), this, SLOT(applyExtendedBilateralFilteringSlot()));
     }
 public slots:
     void selectMesh()
@@ -44,6 +45,11 @@ public slots:
     void applyBilateralFilteringSlot()
     {
       applyBilateralFiltering();
+    }
+
+    void applyExtendedBilateralFilteringSlot()
+    {
+      applyExtendedBilateralFiltering();
     }
 
 };

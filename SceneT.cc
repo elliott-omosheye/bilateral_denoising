@@ -127,6 +127,10 @@ SceneT<M>::SceneT()
   bilateralFilteringButton = new QPushButton(tr("Apply Filter"));
   controls->layout()->addWidget(bilateralFilteringButton);
   bilateralFilteringButton->setHidden(true);
+  
+  extendedBilateralFilteringButton = new QPushButton(tr("Apply Extended Filter"));
+  controls->layout()->addWidget(extendedBilateralFilteringButton);
+  extendedBilateralFilteringButton->setHidden(true);
 
   //meshes = createDialog(tr("Meshes"));
   //meshes->setHidden(true);
@@ -325,6 +329,7 @@ SceneT<M>::loadMesh(const QString filePath)
         updateNormalsButton->setHidden(false);
         bilateralFilteringSpinBox->setHidden(false);
         bilateralFilteringButton->setHidden(false);
+        extendedBilateralFilteringButton->setHidden(false);
         radiusSpinBox->setHidden(false);
         standardDeviationSpinBox->setHidden(false);
         break;
@@ -551,6 +556,32 @@ SceneT<M>::applyBilateralFiltering()
       //standardDeviationSpinBox->value()
       //radiusSpinBox->value()
       models[radioId-2]->bilateralFiltering(radiusSpinBox->value(),standardDeviationSpinBox->value());
+    }
+
+  }
+  updateGTDistances();
+}
+
+
+template <typename M>
+void
+SceneT<M>::applyExtendedBilateralFiltering()
+{
+  const int radioId = whichRadioButton();
+  for(int i = 0; i < bilateralFilteringSpinBox->value(); i++)
+  {
+    
+    if(radioId  == 1)
+    {
+      for(typename std::vector<QtModelT<M>*>::size_type i = 0; i != models.size(); i++) {
+          models[i]->extendedBilateralFiltering(radiusSpinBox->value(),standardDeviationSpinBox->value());
+      }
+    }
+    else
+    {
+      //standardDeviationSpinBox->value()
+      //radiusSpinBox->value()
+      models[radioId-2]->extendedBilateralFiltering(radiusSpinBox->value(),standardDeviationSpinBox->value());
     }
 
   }

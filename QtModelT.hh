@@ -48,6 +48,7 @@ public:
     void addNoise(double sigma);
     void mergeColours(QtModelT<M>* m2);
     void bilateralFiltering(double sigc, double sigs);
+    void extendedBilateralFiltering(double sigc, double sigs);
     void nearestNeighbours(double radius, MapTable* resultTable);
     //void renderBackBuffer();
     void getDistFromGroundTruth();
