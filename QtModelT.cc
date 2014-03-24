@@ -609,6 +609,25 @@ QtModelT<M>::getDistFromGroundTruth()
 
 template <typename M>
 float
+QtModelT<M>::FaceNormalErrorCalc()
+{
+  typename M::FaceIter gt_f_it=groundTruth.faces_begin();
+  float sumArea = 0.0;
+  float sumSigma = 0.0;
+  for (typename M::FaceIter f_it=mesh.faces_begin(); f_it!=mesh.faces_end(); ++f_it)
+  {
+    float normdist = (groundTruth.normal(*gt_f_it).normalized() - mesh.normal(*f_it).normalized()).length();
+    float triArea = faceArea(mesh.cfv_iter(*f_it));
+    sumArea += triArea;
+    sumSigma += powf(normdist, 2) * triArea;
+    ++gt_f_it;
+  }
+  float result = sumSigma/sumArea;
+  return result;
+}
+
+template <typename M>
+float
 QtModelT<M>::pointFaceDist(typename M::ConstFaceVertexIter fvIt, Point p)
 {
   Point *a = &mesh.point(*fvIt);

@@ -52,6 +52,7 @@ public:
     //void renderBackBuffer();
     void getDistFromGroundTruth();
     float gt_distance;
+    float FaceNormalErrorCalc();
 
 private:
     QVector3D modelRotation;

@@ -564,7 +564,7 @@ SceneT<M>::updateGTDistances()
   if (models.size() > 0)
   {
     std::stringstream sstm;
-    sstm << "M1 (" << models[0]->gt_distance << ")";
+    sstm << "M1 (" << models[0]->gt_distance << ", " << models[0]->FaceNormalErrorCalc() << ")";
     radio2->setText(QString::fromStdString(sstm.str()));
   }
   if (models.size() > 1)
