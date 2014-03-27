@@ -67,7 +67,11 @@ QtModelT<M>::QtModelT(M& m)
     );
   }
 
-
+  if (!OpenMesh::IO::write_mesh(mesh, "original_mesh.stl")) 
+  {
+    std::cerr << "write error\n";
+    exit(1);
+  }
 
   groundTruth = mesh;
   updateColour();
@@ -411,8 +415,8 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
       //std::cout << "n: " << n.length() << "\n";
       //std::cout << "normalVector: " << normalVector << "\n";
       //std::cout << "n: " << n << "\n";
-      std::cout << "nCrossn: " << nCrossn.length() << "\n";
-      std::cout << "nCrossn: " << nCrossn << "\n";
+      //std::cout << "nCrossn: " << nCrossn.length() << "\n";
+      //std::cout << "nCrossn: " << nCrossn << "\n";
 
       //if((1-nCrossn.length()) < 0.0f){
           //std::cout << (1-nCrossn.length()) << "\n";
