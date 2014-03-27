@@ -78,6 +78,10 @@ SceneT<M>::SceneT()
   m_modelButton = new QPushButton(tr("Load model"));
   controls->layout()->addWidget(m_modelButton);
 
+  removeModelButton = new QPushButton(tr("Remove model"));
+  controls->layout()->addWidget(removeModelButton);
+  removeModelButton->setHidden(true);
+  
   noiseSpinBox = new QDoubleSpinBox();
   noiseSpinBox->setFocusPolicy(Qt::StrongFocus);
   noiseSpinBox->setMinimum(0.001);
@@ -322,6 +326,7 @@ SceneT<M>::loadMesh(const QString filePath)
     switch(models.size())
     {
       case 1:
+        removeModelButton->setHidden(false);
         //meshes->setHidden(false);
         noiseSpinBox->setHidden(false);
         applyNoiseButton->setHidden(false);

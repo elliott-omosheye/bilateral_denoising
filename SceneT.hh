@@ -35,6 +35,7 @@ protected:
 
 protected:
     QWidget *m_modelButton;
+    QWidget *removeModelButton;
     QWidget *m_ex1Button;
     QWidget *m_ex2Button;
     QWidget *m_ex3Button;
