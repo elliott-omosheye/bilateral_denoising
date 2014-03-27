@@ -409,35 +409,7 @@ SceneT<M>::mousePressEvent(QGraphicsSceneMouseEvent *event)
     return;
   m_mouseEventTime = m_time.elapsed();
 
-  //const int radioId = whichRadioButton();
-  //if (radioId != 1)
-  //{
-    
-    //glPushMatrix();
 
-    //glDisable(GL_DITHER);
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_TEXTURE_2D);
-    //models[radioId-2]->renderBackBuffer();
-
-    //GLint viewport[4];
-    //GLubyte pixel[3];
-
-    //glGetIntegerv(GL_VIEWPORT,viewport);
-
-    //glReadPixels(event->scenePos().x(), viewport[3]-event->scenePos().y(),1,1,
-    //GL_RGB,GL_UNSIGNED_BYTE,(void *)pixel);
-
-    //printf("%d %d %d\n",pixel[0],pixel[1],pixel[2]);
-
-    //glDisable(GL_MULTISAMPLE);
-
-    //glEnable(GL_DITHER);
-
-    //glPopMatrix();
-
-
-  //}
 
   event->accept();
 }
