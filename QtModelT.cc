@@ -399,12 +399,13 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
 
       Vec3f n = Vec3f(normalMatrix(neighbourhood[i].first, 0), normalMatrix(neighbourhood[i].first, 1), normalMatrix(neighbourhood[i].first, 2));
       Vec3f nCrossn = Vec3f(n[1]*normalVector[2] - n[2]*normalVector[1], n[2]*normalVector[0] - n[0]*normalVector[2], n[0]*normalVector[1] - n[1]*normalVector[0]);
-
-
-      if(nCrossn.length() == 0)
+      
+      if(nCrossn.length() == 0){
         parrallel++;
-      else
+        
+      }else{
         notParrallel++;
+      }
 
       //std::cout << "normalVector: " << normalVector.length() << "\n";
       //std::cout << "n: " << n.length() << "\n";
@@ -425,14 +426,13 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
           ////exit(1);
 
       ////}
-
-      h = h * (1 - nCrossn.length());
+      //h = h * (1 - nCrossn.length());
 
       float wc = exp(-t*t / (2*pow(sigc,2)));
       float ws = exp(-h*h / (2*pow(sigs,2)));
       if (c == 1) std::cout << h << "\n";
-      sum += ((wc * ws) * h);
-      normalizer += (wc * ws);
+      sum += ((wc * ws) * h)* (1 - nCrossn.length());
+      normalizer += (wc * ws)* (1 - nCrossn.length());
 
     }
     typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
@@ -546,20 +546,6 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
     
     size_t count = mat_index.index->radiusSearch(&query_pt[0], radius, resultPairs, nanoflann::SearchParams(true));
     std::cout << resultPairs.size() << "\n";
-    //std::cout << resultPairs << "\n";
-    /*
-    std::vector<typename M::Point> closest;
-    closest.reserve(count);
-    for (size_t i = 0; i < resultPairs.size(); i++){
-      typename M::VertexIter vv_it = mesh.vertices_begin();
-      for (size_t c = 0; c < resultPairs[i].first; c++){ // maybe c<= ??
-        ++vv_it;
-      }
-      closest.push_back(mesh.point(*vv_it));
-    }
-    resultTable[p] = closest;
-    //std::cout << closest.size() << "\n";
-    */
     resultTable->push_back(resultPairs);
     i++;
   }
