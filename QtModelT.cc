@@ -74,6 +74,7 @@ QtModelT<M>::QtModelT(M& m)
   }
 
   groundTruth = mesh;
+  groundTruth.update_face_normals();
   updateColour();
   calcNormals();
   getDistFromGroundTruth();
@@ -442,9 +443,6 @@ QtModelT<M>::extendedBilateralFiltering(double sigc, double sigs)
     typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
     //std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
-    std::cout << "Parallel: " << parrallel << "\n";
-    std::cout << "Not Parallel: " << notParrallel << "\n";
-
   }
   mesh.update_normals();
   getDistFromGroundTruth();
@@ -503,7 +501,7 @@ QtModelT<M>::bilateralFiltering(double sigc, double sigs)
 
     }
     typename M::Point newPoint = mesh.point(*v_it) - (mesh.normal(*v_it) * (sum / normalizer) );
-    std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
+    //std::cout << "(" << mesh.point(*v_it) << ")->(" << newPoint << ") " << (sum / normalizer) << "\n";
     mesh.set_point( *v_it,  newPoint);
     
 
@@ -525,8 +523,6 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
   //build kd tree
   PointMatrix pAll = buildMatrix();
 
-  std::cout << pAll << "\n";
-
   typedef nanoflann::KDTreeEigenMatrixAdaptor<PointMatrix>  kd_tree_t;
   kd_tree_t mat_index(3, pAll, 10);
   mat_index.index->buildIndex();
@@ -535,25 +531,21 @@ QtModelT<M>::nearestNeighbours(double radius, MapTable* resultTable)
   int i = 0;
   for (typename M::VertexIter v_it=mesh.vertices_begin(); v_it!=mesh.vertices_end(); ++v_it)
   {
-    
-    
     typename M::Point p = mesh.point(*v_it);
     std::vector<double> query_pt(3);
     query_pt[0] = p[0];
     query_pt[1] = p[1];
     query_pt[2] = p[2];
     
-    std::cout << p << "\n";
-    
     std::vector< std::pair< size_t, double > > resultPairs;
     resultPairs.reserve(mesh.n_vertices());
-    
     size_t count = mat_index.index->radiusSearch(&query_pt[0], radius, resultPairs, nanoflann::SearchParams(true));
+    if (resultPairs.size() > 1) resultPairs.erase(resultPairs.begin());
     std::cout << resultPairs.size() << "\n";
     resultTable->push_back(resultPairs);
     i++;
   }
-  std::cout << resultTable->size() << "\n";
+  std::cout << resultTable->size() << " many\n";
 }
 
 
@@ -564,7 +556,7 @@ QtModelT<M>::calcMeshArea()
   float area = 0.0f;
   for (typename M::FaceIter f_it=mesh.faces_begin(); f_it!=mesh.faces_end(); ++f_it)
   {
-    typename M::ConstFaceVertexIter fvIt = mesh.cfv_iter(f_it);
+    typename M::ConstFaceVertexIter fvIt = mesh.cfv_iter(*f_it);
     area += faceArea(fvIt);
   }
   return area;
@@ -601,7 +593,7 @@ QtModelT<M>::getDistFromGroundTruth()
   {
     float neighbourArea = 0.0f;
     typename M::VertexFaceIter vflt, vfBegin;
-    vfBegin = mesh.vf_iter(v_it);
+    vfBegin = mesh.vf_iter(*v_it);
     for(vflt = vfBegin; vflt; ++vflt)
     {
       typename M::ConstFaceVertexIter fvIt = mesh.cfv_iter(vflt);
@@ -638,13 +630,13 @@ template <typename M>
 float
 QtModelT<M>::FaceNormalErrorCalc()
 {
+  double sumArea = 0.0;
+  double sumSigma = 0.0;
   typename M::FaceIter gt_f_it=groundTruth.faces_begin();
-  float sumArea = 0.0;
-  float sumSigma = 0.0;
   for (typename M::FaceIter f_it=mesh.faces_begin(); f_it!=mesh.faces_end(); ++f_it)
   {
-    float normdist = (groundTruth.normal(*gt_f_it).normalized() - mesh.normal(*f_it).normalized()).length();
-    float triArea = faceArea(mesh.cfv_iter(*f_it));
+    double normdist = (groundTruth.normal(*gt_f_it).normalized() - mesh.normal(*f_it).normalized()).length();
+    double triArea = faceArea(mesh.cfv_iter(*f_it));
     sumArea += triArea;
     sumSigma += powf(normdist, 2) * triArea;
     ++gt_f_it;

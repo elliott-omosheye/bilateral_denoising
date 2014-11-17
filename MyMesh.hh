@@ -6,6 +6,7 @@
 struct MyTraits : public OpenMesh::DefaultTraits
 {
   typedef OpenMesh::Vec3f Color;
+  typedef OpenMesh::Vec3f Normal;
   VertexAttributes( OpenMesh::Attributes::Normal |
                     OpenMesh::Attributes::Color );
 

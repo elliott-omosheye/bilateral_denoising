@@ -34,7 +34,7 @@ public slots:
     }
   
   void removeMesh(){
-    models.erase(models.begin());
+    if (models.size() > 0) models.erase(models.begin());
   }
 
     void applyNoiseSlot()
